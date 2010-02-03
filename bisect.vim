@@ -1,18 +1,18 @@
-"This script allows the user to quickly navigate to any currently visible
-"position by bisection.
-
-"Author: Zachary Michaels
+" Vim global plugin which allows navigation via bisection
+" Last Change: 2010 Feb 3
+" Author:      Zachary Michaels <mikezackles@gmail.com>
+" License:     This file is released under the Vim license.
 
 if exists("loaded_bisect")
   finish
 endif
 let g:loaded_bisect = 1
 
-function! CheckArg(direction)
+function! s:CheckArg(direction)
   "empty for now
 endfunction
 
-function! StartBisect(direction)
+function! s:StartBisect(direction)
   let s:running = 1
   let s:top_mark = line('w0') - 1
   let s:bottom_mark = line('w$') + 1
@@ -22,7 +22,7 @@ function! StartBisect(direction)
   call setpos("'p", getpos('.')) "Save current position
 endfunction
 
-function! BisectIsRunning()
+function! s:BisectIsRunning()
   "We use non-bisect movement as a way of ending a bisect
   "Note that moving away from a location and then coming back
   "will fool this mechanism.
@@ -30,7 +30,7 @@ function! BisectIsRunning()
   return exists("s:running") && getpos("'p") == getpos('.')
 endfunction
 
-function! NarrowBoundaries(direction)
+function! s:NarrowBoundaries(direction)
   "Notice that we update the value of s:right_mark every time the line changes, in
   "order to account for varying line length
   if a:direction == "up"
@@ -61,23 +61,23 @@ function! NarrowBoundaries(direction)
   endif
 endfunction
 
-function! StopBisect()
+function! s:StopBisect()
   let s:running = 0
 endfunction
 
-function! Bisect(direction)
-  call CheckArg(a:direction)
+function! s:Bisect(direction)
+  call s:CheckArg(a:direction)
 
-  if !BisectIsRunning()
-    call StartBisect(a:direction)
+  if !s:BisectIsRunning()
+    call s:StartBisect(a:direction)
   endif
 
-  call NarrowBoundaries(a:direction)
+  call s:NarrowBoundaries(a:direction)
 
   call setpos("'p", getpos('.')) "Save current position
 endfunction
 
-function! VisualBisect(direction)
+function! s:VisualBisect(direction)
   if getpos(".") == getpos("'<")
     call setpos("'s", getpos("'>")) "'s for start - saves the position where the visual select started
   elseif getpos(".") == getpos("'>")
@@ -87,15 +87,49 @@ function! VisualBisect(direction)
   else
     call setpos("'s", getpos("'<"))
   endif
-  call Bisect(a:direction)
+  call s:Bisect(a:direction)
 endfunction
 
-nmap <silent> <C-j> :call Bisect("down")<CR>
-nmap <silent> <C-k> :call Bisect("up")<CR>
-nmap <silent> <C-h> :call Bisect("left")<CR>
-nmap <silent> <C-l> :call Bisect("right")<CR>
+" Normal mode mappings
+if !hasmapto('<Plug>BisectDown', 'n')
+  nmap <silent> <C-j> <Plug>BisectDown
+endif
+if !hasmapto('<Plug>BisectUp', 'n')
+  nmap <silent> <C-k> <Plug>BisectUp
+endif
+if !hasmapto('<Plug>BisectLeft', 'n')
+  nmap <silent> <C-h> <Plug>BisectLeft
+endif
+if !hasmapto('<Plug>BisectRight', 'n')
+  nmap <silent> <C-l> <Plug>BisectRight
+endif
+nnoremap <unique> <script> <Plug>BisectDown <SID>BisectDown
+nnoremap <unique> <script> <Plug>BisectUp <SID>BisectUp
+nnoremap <unique> <script> <Plug>BisectLeft <SID>BisectLeft
+nnoremap <unique> <script> <Plug>BisectRight <SID>BisectRight
+nnoremap <silent> <SID>BisectDown :call <SID>Bisect("down")<CR>
+nnoremap <silent> <SID>BisectUp :call <SID>Bisect("up")<CR>
+nnoremap <silent> <SID>BisectLeft :call <SID>Bisect("left")<CR>
+nnoremap <silent> <SID>BisectRight :call <SID>Bisect("right")<CR>
 
-xmap <silent> <C-j> <ESC>:call VisualBisect("down")<CR>:exe "normal! `s".visualmode()."`p"<CR>
-xmap <silent> <C-k> <ESC>:call VisualBisect("up")<CR>:exe "normal! `s".visualmode()."`p"<CR>
-xmap <silent> <C-h> <ESC>:call VisualBisect("left")<CR>:exe "normal! `s".visualmode()."`p"<CR>
-xmap <silent> <C-l> <ESC>:call VisualBisect("right")<CR>:exe "normal! `s".visualmode()."`p"<CR>
+" Visual mode mappings
+if !hasmapto('<Plug>VisualBisectDown', 'v')
+  xmap <silent> <C-j> <Plug>VisualBisectDown
+endif
+if !hasmapto('<Plug>VisualBisectUp', 'v')
+  xmap <silent> <C-k> <Plug>VisualBisectUp
+endif
+if !hasmapto('<Plug>VisualBisectLeft', 'v')
+  xmap <silent> <C-h> <Plug>VisualBisectLeft
+endif
+if !hasmapto('<Plug>VisualBisectRight', 'v')
+  xmap <silent> <C-l> <Plug>VisualBisectRight
+endif
+xnoremap <unique> <script> <Plug>VisualBisectDown <SID>VisualBisectDown
+xnoremap <unique> <script> <Plug>VisualBisectUp <SID>VisualBisectUp
+xnoremap <unique> <script> <Plug>VisualBisectLeft <SID>VisualBisectLeft
+xnoremap <unique> <script> <Plug>VisualBisectRight <SID>VisualBisectRight
+xnoremap <silent> <SID>VisualBisectDown <ESC>:call <SID>VisualBisect("down")<CR>:exe "normal! `s".visualmode()."`p"<CR>
+xnoremap <silent> <SID>VisualBisectUp <ESC>:call <SID>VisualBisect("up")<CR>:exe "normal! `s".visualmode()."`p"<CR>
+xnoremap <silent> <SID>VisualBisectLeft <ESC>:call <SID>VisualBisect("left")<CR>:exe "normal! `s".visualmode()."`p"<CR>
+xnoremap <silent> <SID>VisualBisectRight <ESC>:call <SID>VisualBisect("right")<CR>:exe "normal! `s".visualmode()."`p"<CR>
