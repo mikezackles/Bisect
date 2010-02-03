@@ -111,7 +111,7 @@ nnoremap <silent> <SID>BisectDown :call <SID>Bisect("down")<CR>
 nnoremap <silent> <SID>BisectUp :call <SID>Bisect("up")<CR>
 nnoremap <silent> <SID>BisectLeft :call <SID>Bisect("left")<CR>
 nnoremap <silent> <SID>BisectRight :call <SID>Bisect("right")<CR>
-nnoremap <SID>StopBisect :call <SID>StopBisect()<CR>
+nnoremap <silent> <SID>StopBisect :call <SID>StopBisect()<CR>
 
 " Visual mode mappings
 if !hasmapto('<Plug>VisualBisectDown', 'v')
@@ -138,4 +138,4 @@ xnoremap <silent> <SID>VisualBisectDown <ESC>:call <SID>VisualBisect("down")<CR>
 xnoremap <silent> <SID>VisualBisectUp <ESC>:call <SID>VisualBisect("up")<CR>:exe "normal! `s".visualmode()."`p"<CR>
 xnoremap <silent> <SID>VisualBisectLeft <ESC>:call <SID>VisualBisect("left")<CR>:exe "normal! `s".visualmode()."`p"<CR>
 xnoremap <silent> <SID>VisualBisectRight <ESC>:call <SID>VisualBisect("right")<CR>:exe "normal! `s".visualmode()."`p"<CR>
-xnoremap <SID>VisualStopBisect :call <SID>StopBisect()<CR>gv
+xnoremap <silent> <SID>VisualStopBisect :call <SID>StopBisect()<CR>gv
