@@ -4,6 +4,7 @@
 "                               |    @t
 "                               |gmail.com
 " License:     This file is released under the Vim license.
+" Version:     0.0.1
 
 if exists("loaded_bisect")
   finish
