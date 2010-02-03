@@ -1,6 +1,8 @@
 " Vim global plugin which allows navigation via bisection
 " Last Change: 2010 Feb 3
-" Author:      Zachary Michaels <mikezackles@gmail.com>
+" Author:      Zachary Michaels |mikezackles
+"                               |    @t
+"                               |gmail.com
 " License:     This file is released under the Vim license.
 
 if exists("loaded_bisect")
