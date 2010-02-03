@@ -31,8 +31,8 @@ commands has not been called.
 Here's an example .vimrc snippet that should use <C-m> for StopBisect as opposed to
 the default, <C-n>:
 
-nmap <C-q> <Plug>StopBisect
-xmap <C-q> <Plug>VisualStopBisect
+nmap <C-m> <Plug>StopBisect
+xmap <C-m> <Plug>VisualStopBisect
 
 
 Normal Mode Mappings:
