@@ -10,10 +10,6 @@ if exists("loaded_bisect")
 endif
 let g:loaded_bisect = 1
 
-function! s:CheckArg(direction)
-  "empty for now
-endfunction
-
 function! s:StartBisect(direction)
   let s:running = 1
   let s:top_mark = line('w0') - 1
@@ -68,8 +64,6 @@ function! s:StopBisect()
 endfunction
 
 function! s:Bisect(direction)
-  call s:CheckArg(a:direction)
-
   if !s:BisectIsRunning()
     call s:StartBisect(a:direction)
   endif
