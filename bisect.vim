@@ -53,7 +53,7 @@ function! NarrowBoundaries(direction)
     let s:right_mark = col('.')
     let s:current_col = s:left_mark + (s:right_mark - s:left_mark)/2
     call cursor(line('.'), s:current_col)
-  elseif a:direction == "right" && col('.') > s:left_mark && col('.') != col('$') - 1
+  elseif a:direction == "right" && col('.') > s:left_mark && col('.') != col('$') - 1 && col('.') != col('$')
     let s:left_mark = col('.')
     let l:tmp_right = min([s:right_mark, col('$')]) "This column could be shorter
     let s:current_col = s:left_mark + (l:tmp_right - s:left_mark)/2
