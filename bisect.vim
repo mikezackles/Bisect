@@ -92,16 +92,16 @@ endfunction
 
 " Normal mode mappings
 if !hasmapto('<Plug>BisectDown', 'n')
-  nmap <silent> <C-j> <Plug>BisectDown
+  nmap <C-j> <Plug>BisectDown
 endif
 if !hasmapto('<Plug>BisectUp', 'n')
-  nmap <silent> <C-k> <Plug>BisectUp
+  nmap <C-k> <Plug>BisectUp
 endif
 if !hasmapto('<Plug>BisectLeft', 'n')
-  nmap <silent> <C-h> <Plug>BisectLeft
+  nmap <C-h> <Plug>BisectLeft
 endif
 if !hasmapto('<Plug>BisectRight', 'n')
-  nmap <silent> <C-l> <Plug>BisectRight
+  nmap <C-l> <Plug>BisectRight
 endif
 nnoremap <unique> <script> <Plug>BisectDown <SID>BisectDown
 nnoremap <unique> <script> <Plug>BisectUp <SID>BisectUp
@@ -114,16 +114,16 @@ nnoremap <silent> <SID>BisectRight :call <SID>Bisect("right")<CR>
 
 " Visual mode mappings
 if !hasmapto('<Plug>VisualBisectDown', 'v')
-  xmap <silent> <C-j> <Plug>VisualBisectDown
+  xmap <C-j> <Plug>VisualBisectDown
 endif
 if !hasmapto('<Plug>VisualBisectUp', 'v')
-  xmap <silent> <C-k> <Plug>VisualBisectUp
+  xmap <C-k> <Plug>VisualBisectUp
 endif
 if !hasmapto('<Plug>VisualBisectLeft', 'v')
-  xmap <silent> <C-h> <Plug>VisualBisectLeft
+  xmap <C-h> <Plug>VisualBisectLeft
 endif
 if !hasmapto('<Plug>VisualBisectRight', 'v')
-  xmap <silent> <C-l> <Plug>VisualBisectRight
+  xmap <C-l> <Plug>VisualBisectRight
 endif
 xnoremap <unique> <script> <Plug>VisualBisectDown <SID>VisualBisectDown
 xnoremap <unique> <script> <Plug>VisualBisectUp <SID>VisualBisectUp
