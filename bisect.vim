@@ -107,10 +107,12 @@ nnoremap <unique> <script> <Plug>BisectDown <SID>BisectDown
 nnoremap <unique> <script> <Plug>BisectUp <SID>BisectUp
 nnoremap <unique> <script> <Plug>BisectLeft <SID>BisectLeft
 nnoremap <unique> <script> <Plug>BisectRight <SID>BisectRight
+nnoremap <unique> <script> <Plug>StopBisect <SID>StopBisect
 nnoremap <silent> <SID>BisectDown :call <SID>Bisect("down")<CR>
 nnoremap <silent> <SID>BisectUp :call <SID>Bisect("up")<CR>
 nnoremap <silent> <SID>BisectLeft :call <SID>Bisect("left")<CR>
 nnoremap <silent> <SID>BisectRight :call <SID>Bisect("right")<CR>
+nnoremap <SID>StopBisect :call <SID>StopBisect()<CR>
 
 " Visual mode mappings
 if !hasmapto('<Plug>VisualBisectDown', 'v')
@@ -129,7 +131,9 @@ xnoremap <unique> <script> <Plug>VisualBisectDown <SID>VisualBisectDown
 xnoremap <unique> <script> <Plug>VisualBisectUp <SID>VisualBisectUp
 xnoremap <unique> <script> <Plug>VisualBisectLeft <SID>VisualBisectLeft
 xnoremap <unique> <script> <Plug>VisualBisectRight <SID>VisualBisectRight
+xnoremap <unique> <script> <Plug>VisualStopBisect <SID>VisualStopBisect
 xnoremap <silent> <SID>VisualBisectDown <ESC>:call <SID>VisualBisect("down")<CR>:exe "normal! `s".visualmode()."`p"<CR>
 xnoremap <silent> <SID>VisualBisectUp <ESC>:call <SID>VisualBisect("up")<CR>:exe "normal! `s".visualmode()."`p"<CR>
 xnoremap <silent> <SID>VisualBisectLeft <ESC>:call <SID>VisualBisect("left")<CR>:exe "normal! `s".visualmode()."`p"<CR>
 xnoremap <silent> <SID>VisualBisectRight <ESC>:call <SID>VisualBisect("right")<CR>:exe "normal! `s".visualmode()."`p"<CR>
+xnoremap <SID>VisualStopBisect :call <SID>VisualStopBisect<CR>gv

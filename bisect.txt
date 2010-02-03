@@ -1,0 +1,42 @@
+*bisect.txt*  Plugin for navigation via bisection.
+
+This plugin will allow you to reach a desired location on the visible screen by
+performing a sequence of bisections to the left, right, up, and down.
+
+For example, suppose your cursor is above the desired location on the screen.  Call
+the BisectDown command, and your cursor will move halfway between its current
+location and the bottom of the screen.  Now suppose your cursor is below the desired
+position.  Call the BisectUp command, and your cursor will move to halfway between
+its current position and its original position.  Repeat as necessary.  BisectLeft and
+BisectRight work analagously.  Horizontal and vertical commands can be interleaved. 
+
+The VisualBisect commands work exactly like the normal Bisect commands in visual
+mode.
+
+Please note that a bisection does not currently end until the cursor moves away from
+the last position that resulted from a bisection.  Even if the cursor moves away and
+comes back, the previous bisection will not terminate.  You can manually terminate a
+bisection by invoking <Plug>StopBisect and <Plug>VisualStopBisect, in normal and
+visual modes, respectively.  There are no default key mappings for the stop bisect
+commands, so you may want to map them yourself if you find yourself needing them
+frequently.
+
+Normal Mode Mappings:
+<C-j>  or  <Plug>BisectDown
+    Perform a downward bisection.
+<C-k>  or  <Plug>BisectUp
+    Perform an upward bisection.
+<C-h>  or  <Plug>BisectLeft
+    Perform a leftward bisection.
+<C-l>  or  <Plug>BisectRight
+    Perform a rightward bisection.
+
+Visual Mode Mappings:
+<C-j>  or  <Plug>VisualBisectDown
+    Perform a downward visual bisection.
+<C-k>  or  <Plug>VisualBisectUp
+    Perform an upward visual bisection.
+<C-h>  or  <Plug>VisualBisectLeft
+    Perform a leftward visual bisection.
+<C-l>  or  <Plug>VisualBisectRight
+    Perform a rightward visual bisection.
