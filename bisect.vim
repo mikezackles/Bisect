@@ -29,7 +29,7 @@ function! s:BisectIsRunning()
   "Note that moving away from a location and then coming back
   "will fool this mechanism.
   "Bind the StopBisect function if you wish the ability to manually stop bisects.
-  return exists("s:running") && getpos("'p") == getpos('.')
+  return exists("s:running") && s:running && getpos("'p") == getpos('.')
 endfunction
 
 function! s:NarrowBoundaries(direction)
@@ -105,6 +105,9 @@ endif
 if !hasmapto('<Plug>BisectRight', 'n')
   nmap <C-l> <Plug>BisectRight
 endif
+if !hasmapto('<Plug>StopBisect', 'n')
+  nmap <C-n> <Plug>StopBisect
+endif
 nnoremap <unique> <script> <Plug>BisectDown <SID>BisectDown
 nnoremap <unique> <script> <Plug>BisectUp <SID>BisectUp
 nnoremap <unique> <script> <Plug>BisectLeft <SID>BisectLeft
@@ -129,6 +132,9 @@ endif
 if !hasmapto('<Plug>VisualBisectRight', 'v')
   xmap <C-l> <Plug>VisualBisectRight
 endif
+if !hasmapto('<Plug>VisualStopBisect', 'v')
+  xmap <C-n> <Plug>VisualStopBisect
+endif
 xnoremap <unique> <script> <Plug>VisualBisectDown <SID>VisualBisectDown
 xnoremap <unique> <script> <Plug>VisualBisectUp <SID>VisualBisectUp
 xnoremap <unique> <script> <Plug>VisualBisectLeft <SID>VisualBisectLeft
@@ -138,4 +144,4 @@ xnoremap <silent> <SID>VisualBisectDown <ESC>:call <SID>VisualBisect("down")<CR>
 xnoremap <silent> <SID>VisualBisectUp <ESC>:call <SID>VisualBisect("up")<CR>:exe "normal! `s".visualmode()."`p"<CR>
 xnoremap <silent> <SID>VisualBisectLeft <ESC>:call <SID>VisualBisect("left")<CR>:exe "normal! `s".visualmode()."`p"<CR>
 xnoremap <silent> <SID>VisualBisectRight <ESC>:call <SID>VisualBisect("right")<CR>:exe "normal! `s".visualmode()."`p"<CR>
-xnoremap <SID>VisualStopBisect :call <SID>VisualStopBisect<CR>gv
+xnoremap <SID>VisualStopBisect :call <SID>StopBisect()<CR>gv

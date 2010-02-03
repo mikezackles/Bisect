@@ -1,7 +1,8 @@
 *bisect.txt*  Plugin for navigation via bisection.
 
 This plugin will allow you to reach a desired location on the visible screen by
-performing a sequence of bisections to the left, right, up, and down.
+performing a sequence of bisections to the left, right, up, and down.  By default,
+these are performed using the <C-h>, <C-l>, <C-j>, and <C-k> commands, respectively.
 
 For example, suppose your cursor is above the desired location on the screen.  Call
 the BisectDown command, and your cursor will move halfway between its current
@@ -13,13 +14,26 @@ BisectRight work analagously.  Horizontal and vertical commands can be interleav
 The VisualBisect commands work exactly like the normal Bisect commands in visual
 mode.
 
+You do not need to completely finish a bisection before resuming normal editing.
+A hybrid approach is often faster.
+
 Please note that a bisection does not currently end until the cursor moves away from
 the last position that resulted from a bisection.  Even if the cursor moves away and
 comes back, the previous bisection will not terminate.  You can manually terminate a
 bisection by invoking <Plug>StopBisect and <Plug>VisualStopBisect, in normal and
-visual modes, respectively.  There are no default key mappings for the stop bisect
-commands, so you may want to map them yourself if you find yourself needing them
-frequently.
+visual modes, respectively.  There default key mapping for stop bisect is <C-n>.
+
+Also note that this script uses the 's and 'p registers and that this behavior is not
+currently configurable.  The `p command can be used to return to the last bisection
+result in order to continue the previous bisection, assuming one of the StopBisect
+commands has not been called.
+
+Here's an example .vimrc snippet that should use <C-m> for StopBisect as opposed to
+the default, <C-n>:
+
+nmap <C-q> <Plug>StopBisect
+xmap <C-q> <Plug>VisualStopBisect
+
 
 Normal Mode Mappings:
 <C-j>  or  <Plug>BisectDown
@@ -30,6 +44,8 @@ Normal Mode Mappings:
     Perform a leftward bisection.
 <C-l>  or  <Plug>BisectRight
     Perform a rightward bisection.
+<C-n>  or  <Plug>StopBisect
+    Manually terminate the last bisection.
 
 Visual Mode Mappings:
 <C-j>  or  <Plug>VisualBisectDown
@@ -40,3 +56,11 @@ Visual Mode Mappings:
     Perform a leftward visual bisection.
 <C-l>  or  <Plug>VisualBisectRight
     Perform a rightward visual bisection.
+<C-n>  or  <Plug>VisualStopBisect
+    Manually terminate the last bisection from visual mode.
+
+Registers Used:
+'s
+    Point where selection started before last visual bisection
+'p
+    Result of last bisection.
