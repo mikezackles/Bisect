@@ -6,8 +6,6 @@
 " License:     This file is released under the Vim license.
 " Version:     0.0.1
 
-" GetLatestVimScripts: 2960 1 :AutoInstall: bisect
-
 if exists("loaded_bisect")
   finish
 endif
