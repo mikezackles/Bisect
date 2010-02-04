@@ -1,38 +1,52 @@
 *bisect.txt*  Plugin for navigation via bisection.
 
 This plugin will allow you to reach a desired location on the visible screen by
-performing a sequence of bisections to the left, right, up, and down.  By default,
-these are performed using the <C-h>, <C-l>, <C-j>, and <C-k> commands, respectively.
+performing a sequence of bisections to the left, right, up, and down.  By
+default, these are performed using the <C-h>, <C-l>, <C-j>, and <C-k> commands,
+respectively.
 
-For example, suppose your cursor is above the desired location on the screen.  Call
-the BisectDown command, and your cursor will move halfway between its current
-location and the bottom of the screen.  Now suppose your cursor is below the desired
-position.  Call the BisectUp command, and your cursor will move to halfway between
-its current position and its original position.  Repeat as necessary.  BisectLeft and
-BisectRight work analagously.  Horizontal and vertical commands can be interleaved. 
+For example, suppose your cursor is above the desired location on the screen.
+Call the BisectDown command, and your cursor will move halfway between its
+current location and the bottom of the screen.  Now suppose your cursor is
+below the desired position.  Call the BisectUp command, and your cursor will
+move to halfway between its current position and its original position.  Repeat
+as necessary.  BisectLeft and BisectRight work analagously.  Horizontal and
+vertical commands can be interleaved. 
 
-The VisualBisect commands work exactly like the normal Bisect commands in visual
-mode.
+The VisualBisect commands work exactly like the normal Bisect commands in
+visual mode.
 
-You do not need to completely finish a bisection before resuming normal editing.
-A hybrid approach is often faster.
+You do not need to completely finish a bisection before resuming normal
+editing.  A hybrid approach is often faster.
 
-Please note that a bisection does not currently end until the cursor moves away from
-the last position that resulted from a bisection.  Even if the cursor moves away and
-comes back, the previous bisection will not terminate.  You can manually terminate a
-bisection by invoking <Plug>StopBisect and <Plug>VisualStopBisect, in normal and
-visual modes, respectively.  There default key mapping for stop bisect is <C-n>.
+Please note that a bisection does not currently end until the cursor moves away
+from the last position that resulted from a bisection.  Even if the cursor
+moves away and comes back, the previous bisection will not terminate.  You can
+manually terminate a bisection by invoking <Plug>StopBisect and
+<Plug>VisualStopBisect, in normal and visual modes, respectively.  There
+default key mapping for stop bisect is <C-n>.
 
-Also note that this script uses the 's and 'p registers and that this behavior is not
-currently configurable.  The `p command can be used to return to the last bisection
-result in order to continue the previous bisection, assuming one of the StopBisect
-commands has not been called.
+Also note that this script uses the 's and 'p registers and that this behavior
+is not currently configurable.  The `p command can be used to return to the
+last bisection result in order to continue the previous bisection, assuming one
+of the StopBisect commands has not been called.
 
-Here's an example .vimrc snippet that should use <C-m> for StopBisect as opposed to
-the default, <C-n>:
+Here's an example .vimrc snippet that should use <C-m> for StopBisect as
+opposed to the default, <C-n>:
 
 nmap <C-m> <Plug>StopBisect
 xmap <C-m> <Plug>VisualStopBisect
+
+And here's another example for using the arrow keys instead of h, j, k, and l.
+
+nmap <C-Left>  <Plug>BisectLeft
+nmap <C-Right> <Plug>BisectRight
+nmap <C-Up>    <Plug>BisectUp
+nmap <C-Down>  <Plug>BisectDown
+xmap <C-Left>  <Plug>VisualBisectLeft
+xmap <C-Right> <Plug>VisualBisectRight
+xmap <C-Up>    <Plug>VisualBisectUp
+xmap <C-Down>  <Plug>VisualBisectDown
 
 
 Normal Mode Mappings:
