@@ -11,8 +11,9 @@ if exists("loaded_bisect")
 endif
 let g:loaded_bisect = 1
 
-function! s:StartBisect(direction)
+function! s:StartBisect(invoking_mode)
   let s:running = 1
+  let s:current_mode = a:invoking_mode
   let s:top_mark = line('w0') - 1
   let s:bottom_mark = line('w$') + 1
   let s:left_mark = 0
@@ -21,12 +22,14 @@ function! s:StartBisect(direction)
   call setpos("'p", getpos('.')) "Save current position
 endfunction
 
-function! s:BisectIsRunning()
+function! s:BisectIsRunning(invoking_mode)
   "We use non-bisect movement as a way of ending a bisect
   "Note that moving away from a location and then coming back
   "will fool this mechanism.
+  "Bisects are also terminated when the editing mode has changed.
   "Bind the StopBisect function if you wish the ability to manually stop bisects.
-  return exists("s:running") && s:running && getpos("'p") == getpos('.')
+  "NOTE - exists("s:running") implies exists("s:current_mode")
+  return exists("s:running") && s:running && getpos("'p") == getpos('.') && a:invoking_mode == s:current_mode
 endfunction
 
 function! s:NarrowBoundaries(direction)
@@ -64,14 +67,19 @@ function! s:StopBisect()
   let s:running = 0
 endfunction
 
-function! s:Bisect(direction)
-  if !s:BisectIsRunning()
-    call s:StartBisect(a:direction)
+function! s:Bisect(direction, invoking_mode)
+  if !s:BisectIsRunning(a:invoking_mode)
+    call s:StartBisect(a:invoking_mode)
   endif
 
   call s:NarrowBoundaries(a:direction)
 
   call setpos("'p", getpos('.')) "Save current position
+endfunction
+
+" Wrappers for s:Bisect
+function! s:NormalBisect(direction)
+  call s:Bisect(a:direction, 'n')
 endfunction
 
 function! s:VisualBisect(direction)
@@ -84,7 +92,7 @@ function! s:VisualBisect(direction)
   else
     call setpos("'s", getpos("'<"))
   endif
-  call s:Bisect(a:direction)
+  call s:Bisect(a:direction, visualmode())
 endfunction
 
 " Normal mode mappings
@@ -108,10 +116,10 @@ nnoremap <unique> <script> <Plug>BisectUp <SID>BisectUp
 nnoremap <unique> <script> <Plug>BisectLeft <SID>BisectLeft
 nnoremap <unique> <script> <Plug>BisectRight <SID>BisectRight
 nnoremap <unique> <script> <Plug>StopBisect <SID>StopBisect
-nnoremap <silent> <SID>BisectDown :call <SID>Bisect("down")<CR>
-nnoremap <silent> <SID>BisectUp :call <SID>Bisect("up")<CR>
-nnoremap <silent> <SID>BisectLeft :call <SID>Bisect("left")<CR>
-nnoremap <silent> <SID>BisectRight :call <SID>Bisect("right")<CR>
+nnoremap <silent> <SID>BisectDown :call <SID>NormalBisect("down")<CR>
+nnoremap <silent> <SID>BisectUp :call <SID>NormalBisect("up")<CR>
+nnoremap <silent> <SID>BisectLeft :call <SID>NormalBisect("left")<CR>
+nnoremap <silent> <SID>BisectRight :call <SID>NormalBisect("right")<CR>
 nnoremap <silent> <SID>StopBisect :call <SID>StopBisect()<CR>
 
 " Visual mode mappings
