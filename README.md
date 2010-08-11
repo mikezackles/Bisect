@@ -22,7 +22,7 @@ Clearing the Screen
 By default, bisect.vim overwrites the ^l binding to clear the screen.
 This behavior can be mapped to another key as follows (using ^b here):
 
-  map <silent> <C-b> <ESC>:redraw!<CR>
+    map <silent> <C-b> <ESC>:redraw!<CR>
 
 Remapping
 ---------
@@ -31,20 +31,20 @@ If you wish to use different keys, you need to remap the <Plug>Bisect*
 and <Plug>VisualBisect* commands.  Here is an example that remaps right
 bisection to ^p:
 
-  nmap <C-p> <Plug>BisectRight
-  xmap <C-p> <Plug>VisualBisectRight
+    nmap <C-p> <Plug>BisectRight
+    xmap <C-p> <Plug>VisualBisectRight
 
 
 Unmapping
 ---------
 
-It is possible that you only wish to use some of bisect.vim's
-functionality.  (For example, you might only want the vertical bisect
-commands).  Unfortunately this is slightly awkward for now, but
-hopefully it will be fixed in a future version.
+It is possible that you only wish to use some of bisect.vim's functionality.
+(For example, you might prefer f and F to the horizontal bisect commands).
+Unfortunately this is slightly awkward for now, but hopefully it will be fixed
+in a future version.
 
 To disable horizontal bisection, create a file named
 ~/.vim/after/plugin/bisect.vim containing:
 
-  unmap <C-h>
-  unmap <C-l>
+    unmap <C-h>
+    unmap <C-l>
