@@ -27,8 +27,8 @@ This behavior can be mapped to another key as follows (using ^b here):
 Remapping
 ---------
 
-If you wish to use different keys, you need to remap the <Plug>Bisect*
-and <Plug>VisualBisect* commands.  Here is an example that remaps right
+If you wish to use different keys, you need to remap the <Plug>Bisect and
+<Plug>VisualBisect family of commands.  Here is an example that remaps right
 bisection to ^p:
 
     nmap <C-p> <Plug>BisectRight
