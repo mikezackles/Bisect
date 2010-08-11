@@ -1,5 +1,5 @@
-Bisect Plugin
-=============
+bisect.vim
+==========
 
 This plugin will allow you to reach a desired location on the visible
 screen by performing a sequence of bisections to the left, right, up,
