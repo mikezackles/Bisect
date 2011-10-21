@@ -4,7 +4,7 @@ bisect.vim
 This plugin will allow you to reach a desired location on the visible
 screen by performing a sequence of bisections to the left, right, up,
 and down.  By default, these are performed using the C-h, C-l,
-C-j, and C-k commands, respectively.  C-n cancels a bisect.
+C-j, and C-k commands, respectively.  C-i cancels a bisect.
 
 For example, suppose your cursor is above the desired location on the
 screen.  Call the BisectDown command, and your cursor will move halfway
@@ -15,6 +15,10 @@ its original position.  Repeat as necessary.  BisectLeft and BisectRight
 work analagously.  Horizontal and vertical commands can be interleaved.
 
 Works in normal and all visual modes.
+
+Attempting to cross a bisection boundary now automatically starts a new
+bisect.  This prevents having to manually stop the bisection if the
+cursor gets "stuck".
 
 Clearing the Screen
 ----------------------
