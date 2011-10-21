@@ -74,6 +74,15 @@ function! s:Bisect(direction, invoking_mode)
 
   call s:NarrowBoundaries(a:direction)
 
+  " Start a new bisection if the cursor hasn't moved.
+  " This allows the user to 'break out' of a bisection.
+  " We only do this once to avoid an infinite loop at the
+  " top and bottom of the screen
+  if getpos("'p") == getpos('.')
+    call s:StartBisect(a:invoking_mode)
+    call s:NarrowBoundaries(a:direction)
+  endif
+
   call setpos("'p", getpos('.')) "Save current position
 endfunction
 
