@@ -109,7 +109,7 @@ if !hasmapto('<Plug>BisectRight', 'n')
   nmap <C-l> <Plug>BisectRight
 endif
 if !hasmapto('<Plug>StopBisect', 'n')
-  nmap <C-n> <Plug>StopBisect
+  nmap <C-i> <Plug>StopBisect
 endif
 nnoremap <unique> <script> <Plug>BisectDown <SID>BisectDown
 nnoremap <unique> <script> <Plug>BisectUp <SID>BisectUp
@@ -136,7 +136,7 @@ if !hasmapto('<Plug>VisualBisectRight', 'v')
   xmap <C-l> <Plug>VisualBisectRight
 endif
 if !hasmapto('<Plug>VisualStopBisect', 'v')
-  xmap <C-n> <Plug>VisualStopBisect
+  xmap <C-i> <Plug>VisualStopBisect
 endif
 xnoremap <unique> <script> <Plug>VisualBisectDown <SID>VisualBisectDown
 xnoremap <unique> <script> <Plug>VisualBisectUp <SID>VisualBisectUp
