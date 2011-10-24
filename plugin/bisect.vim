@@ -10,6 +10,39 @@ if exists("loaded_bisect")
   finish
 endif
 let g:loaded_bisect = 1
+set virtualedit=all " Allows us to move the cursor anywhere on the visible screen
+
+function! s:SavePosition()
+  let s:current_row = line('.')
+  let s:current_col = virtcol('.')
+  " The 'p mark is used in the visual modes to mark the end of the
+  " selection so that it can be reconstructed.
+  call setpos("'p", getpos('.'))
+endfunction
+
+function! s:MoveCursor()
+  "call cursor(s:current_row,s:current_col)
+  call cursor(s:current_row, 0)
+  exe "normal! ".s:current_col."|"
+endfunction
+
+function! s:CursorHasNotMoved()
+  return s:current_row == line('.') && s:current_col == virtcol('.')
+endfunction
+
+function! s:GetRightMark()
+  let l:max_width = winwidth(0)+virtcol('.')-wincol()+1
+  let l:max_so_far = 0
+  for linenum in range(line('w0'), line('w$'))
+    let l:line_length = virtcol([linenum,'$'])
+    if l:line_length > l:max_width
+      return l:max_width
+    elseif l:line_length > l:max_so_far
+      let l:max_so_far = l:line_length
+    endif
+  endfor
+  return l:max_so_far
+endfunction
 
 function! s:StartBisect(invoking_mode)
   let s:running = 1
@@ -17,9 +50,8 @@ function! s:StartBisect(invoking_mode)
   let s:top_mark = line('w0') - 1
   let s:bottom_mark = line('w$') + 1
   let s:left_mark = 0
-  let s:right_mark = col('$')
-  let s:current_col = col('.')
-  call setpos("'p", getpos('.')) "Save current position
+  let s:right_mark = s:GetRightMark()
+  call s:SavePosition()
 endfunction
 
 function! s:BisectIsRunning(invoking_mode)
@@ -29,7 +61,7 @@ function! s:BisectIsRunning(invoking_mode)
   "Bisects are also terminated when the editing mode has changed.
   "Bind the StopBisect function if you wish the ability to manually stop bisects.
   "NOTE - exists("s:running") implies exists("s:current_mode")
-  return exists("s:running") && s:running && getpos("'p") == getpos('.') && a:invoking_mode == s:current_mode
+  return exists("s:running") && s:running && s:CursorHasNotMoved() && a:invoking_mode == s:current_mode
 endfunction
 
 function! s:NarrowBoundaries(direction)
@@ -37,29 +69,16 @@ function! s:NarrowBoundaries(direction)
   "order to account for varying line length
   if a:direction == "up"
     let s:bottom_mark = line('.')
-    let l:new_line = s:top_mark + float2nr(ceil((s:bottom_mark - s:top_mark)/2.0))
-    let l:extend = (s:right_mark == col('$')) ? 1 : 0 "should we extend right_mark or not?
-    call cursor(l:new_line, s:current_col)
-    if l:extend
-      let s:right_mark = col('$')
-    endif
+    let s:current_row = s:top_mark + float2nr(ceil((s:bottom_mark - s:top_mark)/2.0))
   elseif a:direction == "down"
     let s:top_mark = line('.')
-    let l:new_line = s:top_mark + float2nr(floor((s:bottom_mark - s:top_mark)/2.0))
-    let l:extend = (s:right_mark == col('$')) ? 1 : 0 "should we extend right_mark or not?
-    call cursor(l:new_line, s:current_col)
-    if l:extend
-      let s:right_mark = col('$')
-    endif
-  elseif a:direction == "left" && col('.') > s:left_mark && col('.') != 0 "Corner case because of varying line length
-    let s:right_mark = col('.')
+    let s:current_row = s:top_mark + float2nr(floor((s:bottom_mark - s:top_mark)/2.0))
+  elseif a:direction == "left"
+    let s:right_mark = virtcol('.')
     let s:current_col = s:left_mark + float2nr(ceil((s:right_mark - s:left_mark)/2.0))
-    call cursor(line('.'), s:current_col)
-  elseif a:direction == "right" && col('.') > s:left_mark && col('.') != col('$') - 1 && col('.') != col('$')
-    let s:left_mark = col('.')
-    let l:tmp_right = min([s:right_mark, col('$')]) "This column could be shorter
-    let s:current_col = s:left_mark + float2nr(floor((l:tmp_right - s:left_mark)/2.0))
-    call cursor(line('.'), s:current_col)
+  elseif a:direction == "right"
+    let s:left_mark = virtcol('.')
+    let s:current_col = s:left_mark + float2nr(floor((s:right_mark - s:left_mark)/2.0))
   endif
 endfunction
 
@@ -73,17 +92,8 @@ function! s:Bisect(direction, invoking_mode)
   endif
 
   call s:NarrowBoundaries(a:direction)
-
-  " Start a new bisection if the cursor hasn't moved.
-  " This allows the user to 'break out' of a bisection.
-  " We only do this once to avoid an infinite loop at the
-  " top and bottom of the screen
-  if getpos("'p") == getpos('.')
-    call s:StartBisect(a:invoking_mode)
-    call s:NarrowBoundaries(a:direction)
-  endif
-
-  call setpos("'p", getpos('.')) "Save current position
+  call s:MoveCursor()
+  call s:SavePosition()
 endfunction
 
 " Wrappers for s:Bisect
@@ -92,6 +102,8 @@ function! s:NormalBisect(direction)
 endfunction
 
 function! s:VisualBisect(direction)
+  " Here we set the 's mark so that it can be used to reconstruct the visual
+  " selection
   if getpos(".") == getpos("'<")
     call setpos("'s", getpos("'>")) "'s for start - saves the position where the visual select started
   elseif getpos(".") == getpos("'>")
@@ -101,6 +113,7 @@ function! s:VisualBisect(direction)
   else
     call setpos("'s", getpos("'<"))
   endif
+
   call s:Bisect(a:direction, visualmode())
 endfunction
 
