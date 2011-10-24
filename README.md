@@ -16,9 +16,8 @@ work analagously.  Horizontal and vertical commands can be interleaved.
 
 Works in normal and all visual modes.
 
-Attempting to cross a bisection boundary now automatically starts a new
-bisect.  This prevents having to manually stop the bisection if the
-cursor gets "stuck".
+Virtualedit mode is now enabled by default in order to allow for a more
+natural bisection.  This version of bisect.vim will not work without it.
 
 Clearing the Screen
 ----------------------
@@ -52,3 +51,10 @@ To disable horizontal bisection, create a file named
 
     unmap <C-h>
     unmap <C-l>
+
+Misc
+----
+
+bisect.vim uses the marks `s and `p internally to construct visual
+selections.  Modifying these values during a bisection will lead to undefined
+results.
