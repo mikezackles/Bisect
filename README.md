@@ -55,6 +55,6 @@ To disable horizontal bisection, create a file named
 Misc
 ----
 
-bisect.vim uses the marks `s and `p internally to construct visual
+bisect.vim uses the marks 's and 'p internally to construct visual
 selections.  Modifying these values during a bisection will lead to undefined
 results.
