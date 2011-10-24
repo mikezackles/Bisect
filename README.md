@@ -58,3 +58,12 @@ Misc
 bisect.vim uses the marks 's and 'p internally to construct visual
 selections.  Modifying these values during a bisection will lead to undefined
 results.
+
+NERDTree
+--------
+
+bisect.vim and NERDTree have conflicting mappings.  Use the following to
+enable bisect.vim's default mappings.
+
+    let NERDTreeMapJumpNextSibling=''
+    let NERDTreeMapJumpPrevSibling=''
