@@ -84,6 +84,21 @@ You can disable bisect features with the following mappings in your .vimrc:
     let g:bisect_disable_vertical = "true"
     let g:bisect_disable_paging = "true"
     let g:bisect_enable_strict_bisection = "true"
+    let g:bisect_disable_single_line_bisections = "true"
+
+Single Line Bisection
+---------------------
+
+If the first motion in a particular bisection is to the right, single line
+bisection guesses that the user wishes to reach a location on the same line, so
+the length of other lines is ignored during the computation.  Effectively this
+prevents the cursor from jumping past the end of the line.
+
+Use
+
+    let g:bisect_disable_single_line_bisections = "true"
+
+to disable.
 
 Clearing the Screen
 ----------------------

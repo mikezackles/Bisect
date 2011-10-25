@@ -43,7 +43,7 @@ function! s:CursorIsAtExpectedLocation()
 endfunction
 
 " Limit bisections to the longest line on screen.
-function! s:GetRightMark()
+function! s:MaxLineLength()
   let l:max_width = winwidth(0)+virtcol('.')-wincol()+1
   let l:max_so_far = 0
   for linenum in range(line('w0'), line('w$'))
@@ -57,19 +57,25 @@ function! s:GetRightMark()
   return l:max_so_far
 endfunction
 
-function! s:SetInitialMarks()
+" This function determines the initial parameters of a bisection.  There is a
+" special exception made for the case that BisectRight is called to start a
+" bisection.  In this case, we make the guess that the user is trying to get
+" to a location on the same line, so we avoid jumping past the end of the
+" line.
+function! s:StartBisect(direction, invoking_mode)
+  let s:current_row = line('.')
+  let s:current_col = virtcol('.')
+
   let s:top_mark = line('w0') - 1
   let s:bottom_mark = line('w$') + 1
   let s:left_mark = winsaveview()['leftcol']
-  let s:right_mark = s:GetRightMark()
+  if !exists("bisect_disable_single_line_bisections") && a:direction == "right" && s:current_col < virtcol('$')
+    let s:right_mark = virtcol('$')
+  else
+    let s:right_mark = s:MaxLineLength()
+  end
   let s:extend = 0 " Only used when not in virtualedit mode
-endfunction
 
-function! s:StartBisect(invoking_mode)
-  call s:SetInitialMarks()
-
-  let s:current_row = line('.')
-  let s:current_col = virtcol('.')
   if a:invoking_mode == 'n'
     " Normal mode
     let s:running = 1
@@ -138,7 +144,7 @@ endfunction
 " visual selections.
 function! s:Bisect(direction, invoking_mode)
   if !s:BisectIsRunning(a:invoking_mode)
-    call s:StartBisect(a:invoking_mode)
+    call s:StartBisect(a:direction, a:invoking_mode)
   endif
 
   call s:NarrowBoundaries(a:direction)
