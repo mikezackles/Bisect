@@ -12,7 +12,7 @@ endif
 let g:loaded_bisect = 1
 
 function! s:ToggleVirtualEdit()
-  call s:StopBisect()
+  call s:StopBisect('n')
   if &virtualedit != "all"
     set virtualedit=all
   else
