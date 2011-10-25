@@ -54,15 +54,13 @@ endfunction
 function! s:StartBisect(invoking_mode)
   call s:SetInitialMarks()
 
+  let s:current_row = line('.')
+  let s:current_col = virtcol('.')
   if a:invoking_mode == 'n'
     " Normal mode
-    let s:current_row = line('.')
-    let s:current_col = virtcol('.')
     let s:running = 1
   else
     " Visual modes
-    let s:current_row = line("'s")
-    let s:current_col = virtcol("'s")
     let s:current_bisection_timestamp = s:invoke_visual_timestamp
   endif
 endfunction
