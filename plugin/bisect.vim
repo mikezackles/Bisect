@@ -26,10 +26,26 @@ function! s:SaveVisualStartPosition()
   call setpos("'s", getpos('.'))
 endfunction
 
-" Actually move the cursor to the next location
+function! s:GetColFromVirtCol(col)
+  if !s:IsVirtualEdit()
+    if a:col >= virtcol('$')
+      return virtcol('$') - 1
+    endif
+  endif
+  return a:col
+endfunction
+
+" Move the cursor to the next location.
+" Note that the | command is the only way (that I've found) to move to an
+" absolute position in vim.
 function! s:MoveCursor()
   exe "normal! ".s:current_row."G"
-  exe "normal! ".s:current_col."|"
+  exe "normal! ".s:GetColFromVirtCol(s:current_col)."|"
+endfunction
+
+" Select the appropriate region
+function! s:VisualSelect()
+  exe "normal! `s".visualmode().s:current_row."G".s:GetColFromVirtCol(s:current_col)."|"
 endfunction
 
 " See if the cursor has moved
@@ -99,8 +115,6 @@ function s:IsVirtualEdit()
   return &virtualedit == "all"
 endfunction
 
-" This version is for when the cursor can move beyond line endings
-" (virtualedit move)
 function s:NarrowBoundaries(direction)
   if a:direction == "up"
     let s:bottom_mark = s:current_row
@@ -164,11 +178,6 @@ endfunction
 
 function! s:VisualBisect(direction)
   call s:Bisect(a:direction, visualmode())
-endfunction
-
-" Select the appropriate region
-function! s:VisualSelect()
-  exe "normal! `s".visualmode().s:current_row."G".s:current_col."|"
 endfunction
 
 function! s:PageDown()
