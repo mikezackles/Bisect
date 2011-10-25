@@ -33,8 +33,13 @@ function! s:MoveCursor()
 endfunction
 
 " See if the cursor has moved
-function! s:CursorHasNotMoved()
-  return s:current_row == line('.') && s:current_col == virtcol('.')
+" If we aren't in virtualedit mode, the cursor may be shifted because of
+" line endings.  For whatever reason, curswant is off by one from the normal
+" cursor representation.
+function! s:CursorIsAtExpectedLocation()
+  let l:view = winsaveview()
+  let l:column_passes = (s:current_col - 1) == l:view.curswant || s:current_col == virtcol('.')
+  return s:current_row == l:view.lnum && l:column_passes
 endfunction
 
 " Limit bisections to the longest line on screen.
@@ -77,7 +82,7 @@ endfunction
 function! s:BisectIsRunning(invoking_mode)
   if a:invoking_mode == 'n'
     " Normal mode
-    return exists("s:running") && s:running && s:CursorHasNotMoved()
+    return exists("s:running") && s:running && s:CursorIsAtExpectedLocation()
   else
     " Visual modes
     return exists("s:current_bisection_timestamp") && s:current_bisection_timestamp == s:invoke_visual_timestamp
