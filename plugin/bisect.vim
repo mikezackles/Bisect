@@ -1,10 +1,10 @@
 " Vim global plugin which allows navigation via bisection
-" Last Change: 2010 Feb 3
+" Last Change: 2011 Oct 24
 " Author:      Zachary Michaels |mikezackles
 "                               |    @t
 "                               |gmail.com
 " License:     This file is released under the Vim license.
-" Version:     0.0.1
+" Version:     1.0.1
 
 if exists("loaded_bisect")
   finish
@@ -174,11 +174,11 @@ xnoremap <unique> <script> <Plug>VisualBisectUp <SID>VisualBisectUp
 xnoremap <unique> <script> <Plug>VisualBisectLeft <SID>VisualBisectLeft
 xnoremap <unique> <script> <Plug>VisualBisectRight <SID>VisualBisectRight
 xnoremap <unique> <script> <Plug>VisualStopBisect <SID>VisualStopBisect
-xnoremap <silent> <SID>VisualBisectDown :<BS><BS><BS><BS><BS>call <SID>VisualBisect("down")<CR>
-xnoremap <silent> <SID>VisualBisectUp :<BS><BS><BS><BS><BS>call <SID>VisualBisect("up")<CR>
-xnoremap <silent> <SID>VisualBisectLeft :<BS><BS><BS><BS><BS>call <SID>VisualBisect("left")<CR>
-xnoremap <silent> <SID>VisualBisectRight :<BS><BS><BS><BS><BS>call <SID>VisualBisect("right")<CR>
-xnoremap <silent> <SID>VisualStopBisect :<BS><BS><BS><BS><BS>call <SID>StopBisect(visualmode())<CR>gv
+xnoremap <silent> <SID>VisualBisectDown <ESC>:call <SID>VisualBisect("down")<CR>
+xnoremap <silent> <SID>VisualBisectUp <ESC>:call <SID>VisualBisect("up")<CR>
+xnoremap <silent> <SID>VisualBisectLeft <ESC>:call <SID>VisualBisect("left")<CR>
+xnoremap <silent> <SID>VisualBisectRight <ESC>:call <SID>VisualBisect("right")<CR>
+xnoremap <silent> <SID>VisualStopBisect <ESC>:call <SID>StopBisect(visualmode())<CR>gv
 
 nnoremap <silent> v :call <SID>SaveVisualStartPosition()<CR>v
 nnoremap <silent> V :call <SID>SaveVisualStartPosition()<CR>V
