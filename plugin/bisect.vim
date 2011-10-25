@@ -12,22 +12,24 @@ endif
 let g:loaded_bisect = 1
 set virtualedit=all " Allows us to move the cursor anywhere on the visible screen
 
+" Save a timestamp for this invocation of visual mode.
 function! s:SaveVisualStartPosition()
   let s:invoke_visual_timestamp = localtime()
   call setpos("'s", getpos('.'))
 endfunction
 
+" Actually move the cursor to the next location
 function! s:MoveCursor()
-  "call cursor(s:current_row,s:current_col)
-  "call cursor(s:current_row, 0)
   exe "normal! ".s:current_row."G"
   exe "normal! ".s:current_col."|"
 endfunction
 
+" See if the cursor has moved in normal mode
 function! s:CursorHasNotMoved()
   return s:current_row == line('.') && s:current_col == virtcol('.')
 endfunction
 
+" Limit bisections to the longest line on screen.
 function! s:GetRightMark()
   let l:max_width = winwidth(0)+virtcol('.')-wincol()+1
   let l:max_so_far = 0
@@ -91,6 +93,8 @@ function! s:NarrowBoundaries(direction)
   endif
 endfunction
 
+" Cancels a bisection, more or less.  In visual mode it allows the user to
+" start from their last bisect location.
 function! s:StopBisect(invoking_mode)
   if a:invoking_mode == 'n'
     let s:running = 0
@@ -99,6 +103,10 @@ function! s:StopBisect(invoking_mode)
   endif
 endfunction
 
+" This is the main function.  It sets up some instance variables for a new
+" bisection if there isn't one already running.  On subsequent calls it
+" narrows the bisection boundaries and handles moving the cursor and making
+" visual selections.
 function! s:Bisect(direction, invoking_mode)
   if !s:BisectIsRunning(a:invoking_mode)
     call s:StartBisect(a:invoking_mode)
@@ -126,7 +134,7 @@ function! s:VisualSelect()
   exe "normal! `s".visualmode().s:current_row."G".s:current_col."|"
 endfunction
 
-" Normal mode mappings
+" Normal mode mappings.  This allows the user to remap things.
 if !hasmapto('<Plug>BisectDown', 'n')
   nmap <C-j> <Plug>BisectDown
 endif
@@ -153,7 +161,7 @@ nnoremap <silent> <SID>BisectLeft :call <SID>NormalBisect("left")<CR>
 nnoremap <silent> <SID>BisectRight :call <SID>NormalBisect("right")<CR>
 nnoremap <silent> <SID>StopBisect :call <SID>StopBisect('n')<CR>
 
-" Visual mode mappings
+" Visual mode mappings.  User can customize.
 if !hasmapto('<Plug>VisualBisectDown', 'v')
   xmap <C-j> <Plug>VisualBisectDown
 endif
@@ -180,6 +188,9 @@ xnoremap <silent> <SID>VisualBisectLeft <ESC>:call <SID>VisualBisect("left")<CR>
 xnoremap <silent> <SID>VisualBisectRight <ESC>:call <SID>VisualBisect("right")<CR>
 xnoremap <silent> <SID>VisualStopBisect <ESC>:call <SID>StopBisect(visualmode())<CR>gv
 
+" We add timestamps to invoking visual modes here so that each visual
+" selection can correspond to a single bisection (or group of bisections if
+" StopBisect is called).
 nnoremap <silent> v :call <SID>SaveVisualStartPosition()<CR>v
 nnoremap <silent> V :call <SID>SaveVisualStartPosition()<CR>V
 nnoremap <silent> <C-v> :call <SID>SaveVisualStartPosition()<CR><C-v>
