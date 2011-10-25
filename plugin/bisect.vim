@@ -47,7 +47,7 @@ endfunction
 function! s:SetInitialMarks()
   let s:top_mark = line('w0') - 1
   let s:bottom_mark = line('w$') + 1
-  let s:left_mark = 0
+  let s:left_mark = winsaveview()['leftcol']
   let s:right_mark = s:GetRightMark()
 endfunction
 
@@ -113,11 +113,15 @@ function! s:Bisect(direction, invoking_mode)
   endif
 
   call s:NarrowBoundaries(a:direction)
+  let l:view = winsaveview()
   if a:invoking_mode == 'n'
     call s:MoveCursor()
   else
     call s:VisualSelect()
   endif
+  call setpos("'t", getpos("."))
+  call winrestview(l:view)
+  call setpos('.', getpos("'t"))
 endfunction
 
 " Wrappers for s:Bisect
