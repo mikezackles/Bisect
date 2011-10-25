@@ -1,20 +1,32 @@
 bisect.vim
 ==========
 
+Bisection
+---------
+
 This plugin will allow you to reach a desired location on the visible
 screen by performing a sequence of bisections to the left, right, up,
 and down.  By default, these are performed using the C-h, C-l,
 C-j, and C-k commands, respectively.  C-i cancels a bisect.
 
+By default, a new bisection is started when you attempt to move past the edge
+of the current bisection.  See below for how to disable this.
+
 Horizontal and vertical commands can be interleaved.
 
 Works in normal and all visual modes.
+
+Paging
+------
+
+By default, H,J,K, and L will center the cursor half a page to the left, down,
+up, or right, respectively.
 
 VirtualEdit
 -----------
 It is highly recommended that you try virtualedit mode with bisect.vim, as it
 allows the cursor to move to any position on the screen, resulting in less
-confusing bisection.  Don't worry though -- bisect.vim is still fully
+confusing bisection.  bisect.vim is still fully
 functional without virtualedit enabled.
 
 Placing
