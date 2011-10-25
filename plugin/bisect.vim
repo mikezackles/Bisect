@@ -12,6 +12,7 @@ endif
 let g:loaded_bisect = 1
 
 function! s:ToggleVirtualEdit()
+  call s:StopBisect()
   if &virtualedit != "all"
     set virtualedit=all
   else
@@ -31,7 +32,7 @@ function! s:MoveCursor()
   exe "normal! ".s:current_col."|"
 endfunction
 
-" See if the cursor has moved in normal mode
+" See if the cursor has moved
 function! s:CursorHasNotMoved()
   return s:current_row == line('.') && s:current_col == virtcol('.')
 endfunction
@@ -56,6 +57,7 @@ function! s:SetInitialMarks()
   let s:bottom_mark = line('w$') + 1
   let s:left_mark = winsaveview()['leftcol']
   let s:right_mark = s:GetRightMark()
+  let s:extend = 0 " Only used when not in virtualedit mode
 endfunction
 
 function! s:StartBisect(invoking_mode)
@@ -82,7 +84,13 @@ function! s:BisectIsRunning(invoking_mode)
   endif
 endfunction
 
-function! s:NarrowBoundaries(direction)
+function s:IsVirtualEdit()
+  return &virtualedit == "all"
+endfunction
+
+" This version is for when the cursor can move beyond line endings
+" (virtualedit move)
+function s:NarrowBoundaries(direction)
   if a:direction == "up"
     let s:bottom_mark = s:current_row
     let s:current_row = s:top_mark + float2nr(ceil((s:bottom_mark - s:top_mark)/2.0))
@@ -108,6 +116,17 @@ function! s:StopBisect(invoking_mode)
   endif
 endfunction
 
+function! s:SaveWindowState()
+  return winsaveview()
+endfunction
+
+function! s:RestoreWindowState(state)
+  call setpos("'t", getpos("."))
+  let a:state.curswant = s:current_col - 1 " The column that vim 'thinks' we're in if not in virtualedit mode
+  call winrestview(a:state)
+  call setpos('.', getpos("'t"))
+endfunction
+
 " This is the main function.  It sets up some instance variables for a new
 " bisection if there isn't one already running.  On subsequent calls it
 " narrows the bisection boundaries and handles moving the cursor and making
@@ -118,15 +137,13 @@ function! s:Bisect(direction, invoking_mode)
   endif
 
   call s:NarrowBoundaries(a:direction)
-  let l:view = winsaveview()
+  let l:state = s:SaveWindowState()
   if a:invoking_mode == 'n'
     call s:MoveCursor()
   else
     call s:VisualSelect()
   endif
-  call setpos("'t", getpos("."))
-  call winrestview(l:view)
-  call setpos('.', getpos("'t"))
+  call s:RestoreWindowState(l:state)
 endfunction
 
 " Wrappers for s:Bisect
