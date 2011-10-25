@@ -12,17 +12,15 @@ endif
 let g:loaded_bisect = 1
 set virtualedit=all " Allows us to move the cursor anywhere on the visible screen
 
-function! s:SavePosition()
-  let s:current_row = line('.')
-  let s:current_col = virtcol('.')
-  " The 'p mark is used in the visual modes to mark the end of the
-  " selection so that it can be reconstructed.
-  call setpos("'p", getpos('.'))
+function! s:SaveVisualStartPosition()
+  let s:invoke_visual_timestamp = localtime()
+  call setpos("'s", getpos('.'))
 endfunction
 
 function! s:MoveCursor()
   "call cursor(s:current_row,s:current_col)
-  call cursor(s:current_row, 0)
+  "call cursor(s:current_row, 0)
+  exe "normal! ".s:current_row."G"
   exe "normal! ".s:current_col."|"
 endfunction
 
@@ -44,46 +42,61 @@ function! s:GetRightMark()
   return l:max_so_far
 endfunction
 
-function! s:StartBisect(invoking_mode)
-  let s:running = 1
-  let s:current_mode = a:invoking_mode
+function! s:SetInitialMarks()
   let s:top_mark = line('w0') - 1
   let s:bottom_mark = line('w$') + 1
   let s:left_mark = 0
   let s:right_mark = s:GetRightMark()
-  call s:SavePosition()
+endfunction
+
+function! s:StartBisect(invoking_mode)
+  call s:SetInitialMarks()
+
+  if a:invoking_mode == 'n'
+    " Normal mode
+    let s:current_row = line('.')
+    let s:current_col = virtcol('.')
+    let s:running = 1
+  else
+    " Visual modes
+    let s:current_row = line("'s")
+    let s:current_col = virtcol("'s")
+    let s:current_bisection_timestamp = s:invoke_visual_timestamp
+  endif
 endfunction
 
 function! s:BisectIsRunning(invoking_mode)
-  "We use non-bisect movement as a way of ending a bisect
-  "Note that moving away from a location and then coming back
-  "will fool this mechanism.
-  "Bisects are also terminated when the editing mode has changed.
-  "Bind the StopBisect function if you wish the ability to manually stop bisects.
-  "NOTE - exists("s:running") implies exists("s:current_mode")
-  return exists("s:running") && s:running && s:CursorHasNotMoved() && a:invoking_mode == s:current_mode
+  if a:invoking_mode == 'n'
+    " Normal mode
+    return exists("s:running") && s:running && s:CursorHasNotMoved()
+  else
+    " Visual modes
+    return exists("s:current_bisection_timestamp") && s:current_bisection_timestamp == s:invoke_visual_timestamp
+  endif
 endfunction
 
 function! s:NarrowBoundaries(direction)
-  "Notice that we update the value of s:right_mark every time the line changes, in
-  "order to account for varying line length
   if a:direction == "up"
-    let s:bottom_mark = line('.')
+    let s:bottom_mark = s:current_row
     let s:current_row = s:top_mark + float2nr(ceil((s:bottom_mark - s:top_mark)/2.0))
   elseif a:direction == "down"
-    let s:top_mark = line('.')
+    let s:top_mark = s:current_row
     let s:current_row = s:top_mark + float2nr(floor((s:bottom_mark - s:top_mark)/2.0))
   elseif a:direction == "left"
-    let s:right_mark = virtcol('.')
+    let s:right_mark = s:current_col
     let s:current_col = s:left_mark + float2nr(ceil((s:right_mark - s:left_mark)/2.0))
   elseif a:direction == "right"
-    let s:left_mark = virtcol('.')
+    let s:left_mark = s:current_col
     let s:current_col = s:left_mark + float2nr(floor((s:right_mark - s:left_mark)/2.0))
   endif
 endfunction
 
-function! s:StopBisect()
-  let s:running = 0
+function! s:StopBisect(invoking_mode)
+  if a:invoking_mode == 'n'
+    let s:running = 0
+  else
+    call s:SetInitialMarks()
+  endif
 endfunction
 
 function! s:Bisect(direction, invoking_mode)
@@ -92,8 +105,11 @@ function! s:Bisect(direction, invoking_mode)
   endif
 
   call s:NarrowBoundaries(a:direction)
-  call s:MoveCursor()
-  call s:SavePosition()
+  if a:invoking_mode == 'n'
+    call s:MoveCursor()
+  else
+    call s:VisualSelect()
+  endif
 endfunction
 
 " Wrappers for s:Bisect
@@ -102,19 +118,12 @@ function! s:NormalBisect(direction)
 endfunction
 
 function! s:VisualBisect(direction)
-  " Here we set the 's mark so that it can be used to reconstruct the visual
-  " selection
-  if getpos(".") == getpos("'<")
-    call setpos("'s", getpos("'>")) "'s for start - saves the position where the visual select started
-  elseif getpos(".") == getpos("'>")
-    call setpos("'s", getpos("'<"))
-  elseif line('.') == line("'<")    "for visual line mode
-    call setpos("'s", getpos("'>"))
-  else
-    call setpos("'s", getpos("'<"))
-  endif
-
   call s:Bisect(a:direction, visualmode())
+endfunction
+
+" Select the appropriate region
+function! s:VisualSelect()
+  exe "normal! `s".visualmode().s:current_row."G".s:current_col."|"
 endfunction
 
 " Normal mode mappings
@@ -142,7 +151,7 @@ nnoremap <silent> <SID>BisectDown :call <SID>NormalBisect("down")<CR>
 nnoremap <silent> <SID>BisectUp :call <SID>NormalBisect("up")<CR>
 nnoremap <silent> <SID>BisectLeft :call <SID>NormalBisect("left")<CR>
 nnoremap <silent> <SID>BisectRight :call <SID>NormalBisect("right")<CR>
-nnoremap <silent> <SID>StopBisect :call <SID>StopBisect()<CR>
+nnoremap <silent> <SID>StopBisect :call <SID>StopBisect('n')<CR>
 
 " Visual mode mappings
 if !hasmapto('<Plug>VisualBisectDown', 'v')
@@ -165,8 +174,12 @@ xnoremap <unique> <script> <Plug>VisualBisectUp <SID>VisualBisectUp
 xnoremap <unique> <script> <Plug>VisualBisectLeft <SID>VisualBisectLeft
 xnoremap <unique> <script> <Plug>VisualBisectRight <SID>VisualBisectRight
 xnoremap <unique> <script> <Plug>VisualStopBisect <SID>VisualStopBisect
-xnoremap <silent> <SID>VisualBisectDown <ESC>:call <SID>VisualBisect("down")<CR>:exe "normal! `s".visualmode()."`p"<CR>
-xnoremap <silent> <SID>VisualBisectUp <ESC>:call <SID>VisualBisect("up")<CR>:exe "normal! `s".visualmode()."`p"<CR>
-xnoremap <silent> <SID>VisualBisectLeft <ESC>:call <SID>VisualBisect("left")<CR>:exe "normal! `s".visualmode()."`p"<CR>
-xnoremap <silent> <SID>VisualBisectRight <ESC>:call <SID>VisualBisect("right")<CR>:exe "normal! `s".visualmode()."`p"<CR>
-xnoremap <silent> <SID>VisualStopBisect :call <SID>StopBisect()<CR>gv
+xnoremap <silent> <SID>VisualBisectDown :<BS><BS><BS><BS><BS>call <SID>VisualBisect("down")<CR>
+xnoremap <silent> <SID>VisualBisectUp :<BS><BS><BS><BS><BS>call <SID>VisualBisect("up")<CR>
+xnoremap <silent> <SID>VisualBisectLeft :<BS><BS><BS><BS><BS>call <SID>VisualBisect("left")<CR>
+xnoremap <silent> <SID>VisualBisectRight :<BS><BS><BS><BS><BS>call <SID>VisualBisect("right")<CR>
+xnoremap <silent> <SID>VisualStopBisect :<BS><BS><BS><BS><BS>call <SID>StopBisect(visualmode())<CR>gv
+
+nnoremap <silent> v :call <SID>SaveVisualStartPosition()<CR>v
+nnoremap <silent> V :call <SID>SaveVisualStartPosition()<CR>V
+nnoremap <silent> <C-v> :call <SID>SaveVisualStartPosition()<CR><C-v>
