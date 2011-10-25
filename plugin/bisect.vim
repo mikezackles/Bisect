@@ -117,7 +117,7 @@ function! s:StopBisect(invoking_mode)
   if a:invoking_mode == 'n'
     let s:running = 0
   else
-    call s:SetInitialMarks()
+    let s:current_bisection_timestamp = -1
   endif
 endfunction
 
