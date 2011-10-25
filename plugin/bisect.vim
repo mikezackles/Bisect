@@ -27,12 +27,11 @@ function! s:SaveVisualStartPosition()
 endfunction
 
 function! s:GetColFromVirtCol(col)
-  if !s:IsVirtualEdit()
-    if a:col >= virtcol('$')
-      return virtcol('$') - 1
-    endif
+  if !s:IsVirtualEdit() && a:col >= virtcol('$') && virtcol('$') != 1
+    return virtcol('$') - 1
+  else
+    return a:col
   endif
-  return a:col
 endfunction
 
 " Move the cursor to the next location.
