@@ -10,7 +10,14 @@ if exists("loaded_bisect")
   finish
 endif
 let g:loaded_bisect = 1
-set virtualedit=all " Allows us to move the cursor anywhere on the visible screen
+
+function! s:ToggleVirtualEdit()
+  if &virtualedit != "all"
+    set virtualedit=all
+  else
+    set virtualedit=
+  endif
+endfunction
 
 " Save a timestamp for this invocation of visual mode.
 function! s:SaveVisualStartPosition()
@@ -253,6 +260,10 @@ if !hasmapto('<Plug>VisualStopBisect', 'v')
 endif
 xnoremap <unique> <script> <Plug>VisualStopBisect <SID>VisualStopBisect
 xnoremap <silent> <SID>VisualStopBisect <ESC>:call <SID>StopBisect(visualmode())<CR>gv
+
+" Toggle virtualedit=all
+noremap <unique> <script> <Plug>BisectToggleVirtualEdit <SID>ToggleVirtualEdit
+noremap <silent> <SID>ToggleVirtualEdit <ESC>:call <SID>ToggleVirtualEdit()<CR>
 
 " We add timestamps to invoking visual modes here so that each visual
 " selection can correspond to a single bisection (or group of bisections if
