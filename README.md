@@ -6,26 +6,32 @@ screen by performing a sequence of bisections to the left, right, up,
 and down.  By default, these are performed using the C-h, C-l,
 C-j, and C-k commands, respectively.  C-i cancels a bisect.
 
-For example, suppose your cursor is above the desired location on the
-screen.  Call the BisectDown command, and your cursor will move halfway
-between its current location and the bottom of the screen.  Now suppose
-your cursor is below the desired position.  Call the BisectUp command,
-and your cursor will move to halfway between its current position and
-its original position.  Repeat as necessary.  BisectLeft and BisectRight
-work analagously.  Horizontal and vertical commands can be interleaved.
+Horizontal and vertical commands can be interleaved.
 
 Works in normal and all visual modes.
 
-Virtualedit mode is now enabled by default in order to allow for a more
-natural bisection.  This version of bisect.vim will not work without it.
+VirtualEdit
+-----------
+It is highly recommended that you try virtualedit mode with bisect.vim, as it
+allows the cursor to move to any position on the screen, resulting in less
+confusing bisection.  Don't worry though -- bisect.vim is still fully
+functional without virtualedit enabled.
 
-Clearing the Screen
-----------------------
+Placing
 
-By default, bisect.vim overwrites the ^l binding to clear the screen.
-This behavior can be mapped to another key as follows (using ^b here):
+    set virtualedit=all
 
-    map <silent> <C-b> <ESC>:redraw!<CR>
+in your .vimrc will enable virtualedit by default.  bisect.vim also provides
+the <Plug>BisectToggleVirtualEdit convenience function, which can be enabled in
+your .vimrc via something like:
+
+    map <Leader>v <Plug>BisectToggleVirtualEdit
+
+Strict Bisection
+----------------
+If you find bisect.vim too "jumpy" by default, try this in your .vimrc:
+
+    let g:bisect_enable_strict_bisection = "true"
 
 Remapping
 ---------
@@ -37,27 +43,49 @@ bisection to ^p:
     nmap <C-p> <Plug>BisectRight
     xmap <C-p> <Plug>VisualBisectRight
 
+Here is a full list of bisect commands, along with their default mappings:
 
-Unmapping
+    <C-j>(normal mode)   <Plug>BisectDown
+    <C-k>(normal mode)   <Plug>BisectUp
+    <C-h>(normal mode)   <Plug>BisectLeft
+    <C-l>(normal mode)   <Plug>BisectRight
+    <C-j>(visual mode)   <Plug>VisualBisectDown
+    <C-k>(visual mode)   <Plug>VisualBisectUp
+    <C-h>(visual mode)   <Plug>VisualBisectLeft
+    <C-l>(visual mode)   <Plug>VisualBisectRight
+    <C-i>                <Plug>StopBisect
+    J                    <Plug>BisectPageDown
+    K                    <Plug>BisectPageUp
+    H                    <Plug>BisectPageLeft
+    L                    <Plug>BisectPageRight
+    (not mapped)         <Plug>BisectToggleVirualEdit
+
+Customizing
 ---------
 
 It is possible that you only wish to use some of bisect.vim's functionality.
 (For example, you might prefer f and F to the horizontal bisect commands).
-Unfortunately this is slightly awkward for now, but hopefully it will be fixed
-in a future version.
 
-To disable horizontal bisection, create a file named
-~/.vim/after/plugin/bisect.vim containing:
+You can disable bisect features with the following mappings in your .vimrc:
 
-    unmap <C-h>
-    unmap <C-l>
+    let g:bisect_disable_horizontal = "true"
+    let g:bisect_disable_vertical = "true"
+    let g:bisect_disable_paging = "true"
+    let g:bisect_enable_strict_bisection = "true"
 
-Misc
-----
+Clearing the Screen
+----------------------
 
-bisect.vim uses the marks 's and 'p internally to construct visual
-selections.  Modifying these values during a bisection will lead to undefined
-results.
+By default, bisect.vim overwrites the ^l binding to clear the screen.
+This behavior can be mapped to another key as follows (using ^b here):
+
+    map <silent> <C-b> <ESC>:redraw!<CR>
+
+Marks
+-----
+
+bisect.vim currently uses the marks 's, 'p, and 't internally.  Modifying these
+values with bisect.vim enabled may lead to unexpected results.
 
 NERDTree
 --------
@@ -67,3 +95,13 @@ enable bisect.vim's default mappings.
 
     let NERDTreeMapJumpNextSibling=''
     let NERDTreeMapJumpPrevSibling=''
+
+Suggestions
+-----------
+
+As mentioned before, please try virtualedit mode with bisect.vim
+
+You may also want to try
+
+    set cursorline
+    set cursorcolumn
