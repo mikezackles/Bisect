@@ -84,12 +84,7 @@ function! s:StartBisect(direction, invoking_mode)
   let s:top_mark = line('w0') - 1
   let s:bottom_mark = line('w$') + 1
   let s:left_mark = winsaveview()['leftcol']
-  if !exists("bisect_disable_single_line_bisections") && a:direction == "right" && s:current_col < virtcol('$')
-    let s:right_mark = virtcol('$')
-  else
-    let s:right_mark = s:MaxLineLength()
-  end
-  let s:extend = 0 " Only used when not in virtualedit mode
+  let s:right_mark = s:MaxLineLength()
 
   if a:invoking_mode == 'n'
     " Normal mode
@@ -123,10 +118,18 @@ function s:NarrowBoundaries(direction)
     let s:current_row = s:top_mark + float2nr(floor((s:bottom_mark - s:top_mark)/2.0))
   elseif a:direction == "left"
     let s:right_mark = s:current_col
-    let s:current_col = s:left_mark + float2nr(ceil((s:right_mark - s:left_mark)/2.0))
+    if virtcol('.') < virtcol('$') && (!s:IsVirtualEdit() || exists("bisect_force_varying_line_endings"))
+      let s:current_col = s:left_mark + float2nr(ceil((virtcol('.') - s:left_mark)/2.0))
+    else
+      let s:current_col = s:left_mark + float2nr(ceil((s:right_mark - s:left_mark)/2.0))
+    endif
   elseif a:direction == "right"
     let s:left_mark = s:current_col
-    let s:current_col = s:left_mark + float2nr(floor((s:right_mark - s:left_mark)/2.0))
+    if virtcol('.') < virtcol('$') && s:right_mark > virtcol('$') && (!s:IsVirtualEdit() || exists("bisect_force_varying_line_endings"))
+      let s:current_col = s:left_mark + float2nr(floor((virtcol('$') - s:left_mark)/2.0))
+    else
+      let s:current_col = s:left_mark + float2nr(floor((s:right_mark - s:left_mark)/2.0))
+    endif
   endif
 endfunction
 
