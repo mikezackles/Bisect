@@ -138,58 +138,122 @@ function! s:VisualSelect()
   exe "normal! `s".visualmode().s:current_row."G".s:current_col."|"
 endfunction
 
-" Normal mode mappings.  This allows the user to remap things.
-if !hasmapto('<Plug>BisectDown', 'n')
-  nmap <C-j> <Plug>BisectDown
+function! s:PageDown()
+  normal! Lzz
+endfunction
+
+function! s:PageUp()
+  normal! Hzz
+endfunction
+
+function! s:PageLeft()
+  let l:view = winsaveview()
+  exe "normal! ".(s:left_mark+1)."|"
+  call setpos("'t", getpos("."))
+  call winrestview(l:view)
+  call setpos('.', getpos("'t"))
+endfunction
+
+function! s:PageRight()
+  let l:view = winsaveview()
+  exe "normal! ".(winwidth(0)+s:left_mark-1i)."|"
+  call setpos("'t", getpos("."))
+  call winrestview(l:view)
+  call setpos('.', getpos("'t"))
+endfunction
+
+" User can either remap these or disable them entirely
+" Vertical bisection
+if !exists("bisect_disable_vertical")
+  " Normal
+  if !hasmapto('<Plug>BisectDown', 'n')
+    nmap <C-j> <Plug>BisectDown
+  endif
+  if !hasmapto('<Plug>BisectUp', 'n')
+    nmap <C-k> <Plug>BisectUp
+  endif
+  nnoremap <unique> <script> <Plug>BisectDown <SID>BisectDown
+  nnoremap <unique> <script> <Plug>BisectUp <SID>BisectUp
+  nnoremap <silent> <SID>BisectDown :call <SID>NormalBisect("down")<CR>
+  nnoremap <silent> <SID>BisectUp :call <SID>NormalBisect("up")<CR>
+
+  " Visual
+  if !hasmapto('<Plug>VisualBisectDown', 'v')
+    xmap <C-j> <Plug>VisualBisectDown
+  endif
+  if !hasmapto('<Plug>VisualBisectUp', 'v')
+    xmap <C-k> <Plug>VisualBisectUp
+  endif
+  xnoremap <unique> <script> <Plug>VisualBisectDown <SID>VisualBisectDown
+  xnoremap <unique> <script> <Plug>VisualBisectUp <SID>VisualBisectUp
+  xnoremap <silent> <SID>VisualBisectDown <ESC>:call <SID>VisualBisect("down")<CR>
+  xnoremap <silent> <SID>VisualBisectUp <ESC>:call <SID>VisualBisect("up")<CR>
 endif
-if !hasmapto('<Plug>BisectUp', 'n')
-  nmap <C-k> <Plug>BisectUp
+
+" Horizontal bisection
+if !exists("bisect_disable_horizontal")
+  " Normal
+  if !hasmapto('<Plug>BisectLeft', 'n')
+    nmap <C-h> <Plug>BisectLeft
+  endif
+  if !hasmapto('<Plug>BisectRight', 'n')
+    nmap <C-l> <Plug>BisectRight
+  endif
+  nnoremap <unique> <script> <Plug>BisectLeft <SID>BisectLeft
+  nnoremap <unique> <script> <Plug>BisectRight <SID>BisectRight
+  nnoremap <silent> <SID>BisectLeft :call <SID>NormalBisect("left")<CR>
+  nnoremap <silent> <SID>BisectRight :call <SID>NormalBisect("right")<CR>
+
+  " Visual
+  if !hasmapto('<Plug>VisualBisectLeft', 'v')
+    xmap <C-h> <Plug>VisualBisectLeft
+  endif
+  if !hasmapto('<Plug>VisualBisectRight', 'v')
+    xmap <C-l> <Plug>VisualBisectRight
+  endif
+  xnoremap <unique> <script> <Plug>VisualBisectLeft <SID>VisualBisectLeft
+  xnoremap <unique> <script> <Plug>VisualBisectRight <SID>VisualBisectRight
+  xnoremap <silent> <SID>VisualBisectLeft <ESC>:call <SID>VisualBisect("left")<CR>
+  xnoremap <silent> <SID>VisualBisectRight <ESC>:call <SID>VisualBisect("right")<CR>
 endif
-if !hasmapto('<Plug>BisectLeft', 'n')
-  nmap <C-h> <Plug>BisectLeft
+
+" Paging
+if !exists("bisect_disable_paging")
+  if !hasmapto('<Plug>BisectPageDown', 'n')
+    map J <Plug>BisectPageDown
+  endif
+  if !hasmapto('<Plug>BisectPageUp', 'n')
+    map K <Plug>BisectPageUp
+  endif
+  if !hasmapto('<Plug>BisectPageLeft', 'n')
+    map H <Plug>BisectPageLeft
+  endif
+  if !hasmapto('<Plug>BisectPageRight', 'n')
+    map L <Plug>BisectPageRight
+  endif
+  noremap <unique> <script> <Plug>BisectPageDown  <SID>BisectPageDown
+  noremap <unique> <script> <Plug>BisectPageUp    <SID>BisectPageUp
+  noremap <unique> <script> <Plug>BisectPageLeft  <SID>BisectPageLeft
+  noremap <unique> <script> <Plug>BisectPageRight <SID>BisectPageRight
+  noremap <silent> <SID>BisectPageDown  <ESC>:call <SID>PageDown()<CR>
+  noremap <silent> <SID>BisectPageUp    <ESC>:call <SID>PageUp()<CR>
+  noremap <silent> <SID>BisectPageLeft  <ESC>:call <SID>PageLeft()<CR>
+  noremap <silent> <SID>BisectPageRight <ESC>:call <SID>PageRight()<CR>
 endif
-if !hasmapto('<Plug>BisectRight', 'n')
-  nmap <C-l> <Plug>BisectRight
-endif
+
+" Stop Bisection
+" Normal
 if !hasmapto('<Plug>StopBisect', 'n')
   nmap <C-i> <Plug>StopBisect
 endif
-nnoremap <unique> <script> <Plug>BisectDown <SID>BisectDown
-nnoremap <unique> <script> <Plug>BisectUp <SID>BisectUp
-nnoremap <unique> <script> <Plug>BisectLeft <SID>BisectLeft
-nnoremap <unique> <script> <Plug>BisectRight <SID>BisectRight
 nnoremap <unique> <script> <Plug>StopBisect <SID>StopBisect
-nnoremap <silent> <SID>BisectDown :call <SID>NormalBisect("down")<CR>
-nnoremap <silent> <SID>BisectUp :call <SID>NormalBisect("up")<CR>
-nnoremap <silent> <SID>BisectLeft :call <SID>NormalBisect("left")<CR>
-nnoremap <silent> <SID>BisectRight :call <SID>NormalBisect("right")<CR>
 nnoremap <silent> <SID>StopBisect :call <SID>StopBisect('n')<CR>
 
-" Visual mode mappings.  User can customize.
-if !hasmapto('<Plug>VisualBisectDown', 'v')
-  xmap <C-j> <Plug>VisualBisectDown
-endif
-if !hasmapto('<Plug>VisualBisectUp', 'v')
-  xmap <C-k> <Plug>VisualBisectUp
-endif
-if !hasmapto('<Plug>VisualBisectLeft', 'v')
-  xmap <C-h> <Plug>VisualBisectLeft
-endif
-if !hasmapto('<Plug>VisualBisectRight', 'v')
-  xmap <C-l> <Plug>VisualBisectRight
-endif
+" Visual
 if !hasmapto('<Plug>VisualStopBisect', 'v')
   xmap <C-i> <Plug>VisualStopBisect
 endif
-xnoremap <unique> <script> <Plug>VisualBisectDown <SID>VisualBisectDown
-xnoremap <unique> <script> <Plug>VisualBisectUp <SID>VisualBisectUp
-xnoremap <unique> <script> <Plug>VisualBisectLeft <SID>VisualBisectLeft
-xnoremap <unique> <script> <Plug>VisualBisectRight <SID>VisualBisectRight
 xnoremap <unique> <script> <Plug>VisualStopBisect <SID>VisualStopBisect
-xnoremap <silent> <SID>VisualBisectDown <ESC>:call <SID>VisualBisect("down")<CR>
-xnoremap <silent> <SID>VisualBisectUp <ESC>:call <SID>VisualBisect("up")<CR>
-xnoremap <silent> <SID>VisualBisectLeft <ESC>:call <SID>VisualBisect("left")<CR>
-xnoremap <silent> <SID>VisualBisectRight <ESC>:call <SID>VisualBisect("right")<CR>
 xnoremap <silent> <SID>VisualStopBisect <ESC>:call <SID>StopBisect(visualmode())<CR>gv
 
 " We add timestamps to invoking visual modes here so that each visual
