@@ -60,9 +60,10 @@ endfunction
 " line endings.  For whatever reason, curswant is off by one from the normal
 " cursor representation.
 function! s:CursorIsAtExpectedLocation()
-  let l:view = winsaveview()
-  let l:column_passes = (s:current_col - 1) == l:view.curswant || s:current_col == virtcol('.')
-  return s:current_row == l:view.lnum && l:column_passes
+  let l:aview = winsaveview()
+  let l:row_passes = s:current_row == l:aview.lnum
+  let l:column_passes = (s:current_col - 1) == l:aview.curswant || s:current_col == virtcol('.')
+  return l:row_passes && l:column_passes
 endfunction
 
 " Limit bisections to the longest line on screen.
@@ -240,12 +241,20 @@ endfunction
 " TODO - make this behave like the other paging functions at the bottom of a
 " buffer
 function! s:PageDown()
-  normal! Lzz
+  let l:bottomline = winsaveview().topline+winheight(0)
+  let l:col = virtcol('.')
+  exe "normal! ".l:bottomline."G"
+  exe "normal! ".l:col."|"
+  normal! zz
 endfunction
 
 function! s:PageUp()
-  if winsaveview().topline > 1
-    normal! Hzz
+  let l:topline = winsaveview().topline-1
+  if l:topline > 0
+    let l:col = virtcol('.')
+    exe "normal! ".l:topline."G"
+    exe "normal! ".l:col."|"
+    normal! zz
   endif
 endfunction
 
