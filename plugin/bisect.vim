@@ -28,8 +28,12 @@ function! s:ToggleVaryingLineEndings()
   endif
 endfunction
 
-function! s:SaveVisualStartPosition()
-  call setpos("'s", getpos('.'))
+" This is called before the mode is set, so we have to pass it in explicitly.
+function! s:SaveVisualStartPosition(vmode)
+  if a:vmode == "V" "Visual line mode
+    normal! 0
+  endif
+  let s:visual_start_position = getpos('.')
 endfunction
 
 function! s:GetTruncatedCol()
@@ -51,7 +55,8 @@ endfunction
 
 " Select the appropriate region
 function! s:VisualSelect()
-  exe "normal! `s".visualmode().s:current_row."G".s:GetTruncatedCol()."|"
+  call setpos('.', s:visual_start_position)
+  exe "normal! ".visualmode().s:current_row."G".s:GetTruncatedCol()."|"
 endfunction
 
 " See if the cursor has moved
@@ -59,12 +64,6 @@ endfunction
 " line endings.
 function! s:CursorIsAtExpectedLocation()
   return s:invoking_position == s:final_position
-  "let l:row_passes = s:current_row == line(s:invoking_position[1:-1])
-  "let l:column_passes = s:current_col == virtcol(s:invoking_position[1:-1])
-  "if !s:IsVirtualEdit()
-  "  let l:column_passes = l:column_passes || ((s:current_col - 1) == winsaveview().curswant)
-  "endif
-  "return l:row_passes && l:column_passes
 endfunction
 
 " Limit bisections to the longest line on screen.
@@ -124,6 +123,8 @@ function s:IsVirtualEdit()
   return &virtualedit == "all"
 endfunction
 
+" This is the actual bisection algorithm
+" TODO - clean this up if possible... Yuck!
 function s:NarrowBoundaries(direction)
   if a:direction == "up"
     let s:bottom_mark = s:current_row
@@ -158,7 +159,7 @@ function s:NarrowBoundaries(direction)
     endif
   elseif a:direction == "right"
     let s:left_mark = s:current_col
-    if virtcol('.') < virtcol('$') && s:right_mark > virtcol('$') && (!s:IsVirtualEdit() || exists("g:bisect_force_varying_line_endings"))
+    if virtcol('.') < virtcol('$') && s:right_mark > virtcol('$') && s:current_col != (virtcol('$')-1) && (!s:IsVirtualEdit() || exists("g:bisect_force_varying_line_endings"))
       let l:varying_line_endings = 1
       let s:current_col = s:left_mark + float2nr(floor((virtcol('$') - s:left_mark)/2.0))
     else
@@ -188,10 +189,11 @@ endfunction
 function! s:VisualStopBisect()
   call s:StopBisect()
   "Reselect the visual selection
-  if getpos("'s") == getpos("'<")
-    exe "normal! `s".visualmode()."`>"
+  call setpos('.', s:visual_start_position)
+  if s:visual_start_position == getpos("'<")
+    exe "normal! ".visualmode()."`>"
   else
-    exe "normal! `s".visualmode()."`<"
+    exe "normal! ".visualmode()."`<"
   endif
 endfunction
 
@@ -237,19 +239,19 @@ function! s:VisualBisect(direction)
   " scenario.  Note that the column will be wrong in visual line mode, so we
   " just set it to 1 since we don't care about it anyway.  Note that a
   " horizontal bisection in this case will begin a new global bisection.
-  if visualmode() == "V"
-    normal! 0
-  endif
-  if getpos("'s") == getpos("'<")
+  if s:visual_start_position == getpos("'<")
     let s:invoking_position = getpos("'>")
   else
     let s:invoking_position = getpos("'<")
   endif
+  if visualmode() == "V"
+    normal! 0
+    " Column is filled with garbage in this case
+    let s:invoking_position[2] = 1
+  endif
   call s:Bisect(a:direction, visualmode())
 endfunction
 
-" TODO - make this behave like the other paging functions at the bottom of a
-" buffer
 function! s:PageDown()
   let l:bottomline = winsaveview().topline+winheight(0)
   let l:col = virtcol('.')
@@ -275,7 +277,6 @@ function! s:PageLeft()
   endif
 endfunction
 
-" TODO - Prevent going off the edge in virtualedit mode
 function! s:PageRight()
   let l:width = winwidth(0)+virtcol('.')-wincol()+1
   let l:aview = winsaveview()
@@ -387,6 +388,6 @@ noremap <silent> <SID>ToggleVirtualEdit <ESC>:call <SID>ToggleVirtualEdit()<CR>
 noremap <unique> <script> <Plug>BisectToggleVaryingLineEndings <SID>ToggleVaryingLineEndings
 noremap <silent> <SID>ToggleVaryingLineEndings <ESC>:call <SID>ToggleVaryingLineEndings()<CR>
 
-nnoremap <silent> v :call <SID>SaveVisualStartPosition()<CR>v
-nnoremap <silent> V :call <SID>SaveVisualStartPosition()<CR>V
-nnoremap <silent> <C-v> :call <SID>SaveVisualStartPosition()<CR><C-v>
+nnoremap <silent> v :call <SID>SaveVisualStartPosition('v')<CR>v
+nnoremap <silent> V :call <SID>SaveVisualStartPosition('V')<CR>V
+nnoremap <silent> <C-v> :call <SID>SaveVisualStartPosition('C-v')<CR><C-v>

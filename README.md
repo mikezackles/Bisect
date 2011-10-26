@@ -65,7 +65,8 @@ Here is a full list of bisect commands, along with their default mappings:
     <C-k>(visual mode)   <Plug>VisualBisectUp
     <C-h>(visual mode)   <Plug>VisualBisectLeft
     <C-l>(visual mode)   <Plug>VisualBisectRight
-    <C-i>                <Plug>StopBisect
+    <C-i>(normal mode)   <Plug>StopBisect
+    <C-i>(visual mode)   <Plug>VisualStopBisect
     J                    <Plug>BisectPageDown
     K                    <Plug>BisectPageUp
     H                    <Plug>BisectPageLeft
@@ -94,12 +95,6 @@ By default, bisect.vim overwrites the ^l binding to clear the screen.
 This behavior can be mapped to another key as follows (using ^b here):
 
     map <silent> <C-b> <ESC>:redraw!<CR>
-
-Marks
------
-
-bisect.vim currently uses the marks 's, 'p, and 't internally.  Modifying these
-values with bisect.vim enabled may lead to unexpected results.
 
 NERDTree
 --------
