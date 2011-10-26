@@ -139,7 +139,7 @@ function s:NarrowBoundaries(direction)
     let s:current_row = s:top_mark + float2nr(ceil((s:bottom_mark - s:top_mark)/2.0))
     if s:current_row == s:bottom_mark && !exists("g:bisect_force_strict_bisection")
       call s:SetStartingTopMark()
-      if s:current_row != s:bottom_mark
+      if s:current_row != s:top_mark+1
         call s:NarrowBoundaries(a:direction)
       endif
     endif
@@ -148,7 +148,7 @@ function s:NarrowBoundaries(direction)
     let s:current_row = s:top_mark + float2nr(floor((s:bottom_mark - s:top_mark)/2.0))
     if s:current_row == s:top_mark && !exists("g:bisect_force_strict_bisection")
       call s:SetStartingBottomMark()
-      if s:current_row != s:top_mark
+      if s:current_row != s:bottom_mark-1
         call s:NarrowBoundaries(a:direction)
       endif
     endif
@@ -161,20 +161,21 @@ function s:NarrowBoundaries(direction)
     endif
     if s:current_col == s:right_mark && !exists("g:bisect_force_strict_bisection")
       call s:SetStartingLeftMark()
-      if s:current_col != s:right_mark
+      if s:current_col != s:left_mark+1
         call s:NarrowBoundaries(a:direction)
       endif
     endif
   elseif a:direction == "right"
     let s:left_mark = s:current_col
     if virtcol('.') < virtcol('$') && s:right_mark > virtcol('$') && (!s:IsVirtualEdit() || exists("g:bisect_force_varying_line_endings"))
-      let s:current_col = s:left_mark + float2nr(floor((virtcol('$') - s:left_mark)/2.0))
+      let l:tmp_right_mark = virtcol('$')
     else
-      let s:current_col = s:left_mark + float2nr(floor((s:right_mark - s:left_mark)/2.0))
+      let l:tmp_right_mark = s:right_mark
     endif
+    let s:current_col = s:left_mark + float2nr(floor((l:tmp_right_mark - s:left_mark)/2.0))
     if s:current_col == s:left_mark && !exists("g:bisect_force_strict_bisection")
       call s:SetStartingRightMark()
-      if s:current_col != s:left_mark
+      if s:current_col != l:tmp_right_mark-1
         call s:NarrowBoundaries(a:direction)
       endif
     endif
