@@ -190,28 +190,34 @@ function! s:VisualBisect(direction)
   call s:Bisect(a:direction, visualmode())
 endfunction
 
+" TODO - make this behave like the other paging functions at the bottom of a
+" buffer
 function! s:PageDown()
   normal! Lzz
 endfunction
 
 function! s:PageUp()
-  normal! Hzz
+  if winsaveview().topline > 1
+    normal! Hzz
+  endif
 endfunction
 
 function! s:PageLeft()
-  let l:view = winsaveview()
-  exe "normal! ".(s:left_mark+1)."|"
-  call setpos("'t", getpos("."))
-  call winrestview(l:view)
-  call setpos('.', getpos("'t"))
+  let l:aview = winsaveview()
+  if l:aview.leftcol != 0
+    exe "normal! ".(l:aview.leftcol)."|"
+  endif
 endfunction
 
+" TODO - Prevent going off the edge in virtualedit mode
 function! s:PageRight()
-  let l:view = winsaveview()
-  exe "normal! ".(winwidth(0)+s:left_mark-1i)."|"
-  call setpos("'t", getpos("."))
-  call winrestview(l:view)
-  call setpos('.', getpos("'t"))
+  let l:width = winwidth(0)+virtcol('.')-wincol()+1
+  let l:aview = winsaveview()
+  let l:target_col = l:aview.leftcol + l:width
+  exe "normal! ".(l:target_col)."|"
+  if !s:IsVirtualEdit() && virtcol('.') < l:target_col
+    call winrestview(l:aview)
+  endif
 endfunction
 
 " User can either remap these or disable them entirely
