@@ -71,6 +71,7 @@ Here is a full list of bisect commands, along with their default mappings:
     H                    <Plug>BisectPageLeft
     L                    <Plug>BisectPageRight
     (not mapped)         <Plug>BisectToggleVirualEdit
+    (not mapped)         <Plug>BisectToggleVaryingLineEndings
 
 Customizing
 ---------

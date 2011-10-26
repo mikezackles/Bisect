@@ -20,6 +20,14 @@ function! s:ToggleVirtualEdit()
   endif
 endfunction
 
+function! s:ToggleVaryingLineEndings()
+  if exists("g:bisect_force_varying_line_endings")
+    unlet g:bisect_force_varying_line_endings
+  else
+    let g:bisect_force_varying_line_endings = "true"
+  endif
+endfunction
+
 " Save a timestamp for this invocation of visual mode.
 function! s:SaveVisualStartPosition()
   let s:invoke_visual_timestamp = localtime()
@@ -118,14 +126,14 @@ function s:NarrowBoundaries(direction)
     let s:current_row = s:top_mark + float2nr(floor((s:bottom_mark - s:top_mark)/2.0))
   elseif a:direction == "left"
     let s:right_mark = s:current_col
-    if virtcol('.') < virtcol('$') && (!s:IsVirtualEdit() || exists("bisect_force_varying_line_endings"))
+    if virtcol('.') < virtcol('$') && (!s:IsVirtualEdit() || exists("g:bisect_force_varying_line_endings"))
       let s:current_col = s:left_mark + float2nr(ceil((virtcol('.') - s:left_mark)/2.0))
     else
       let s:current_col = s:left_mark + float2nr(ceil((s:right_mark - s:left_mark)/2.0))
     endif
   elseif a:direction == "right"
     let s:left_mark = s:current_col
-    if virtcol('.') < virtcol('$') && s:right_mark > virtcol('$') && (!s:IsVirtualEdit() || exists("bisect_force_varying_line_endings"))
+    if virtcol('.') < virtcol('$') && s:right_mark > virtcol('$') && (!s:IsVirtualEdit() || exists("g:bisect_force_varying_line_endings"))
       let s:current_col = s:left_mark + float2nr(floor((virtcol('$') - s:left_mark)/2.0))
     else
       let s:current_col = s:left_mark + float2nr(floor((s:right_mark - s:left_mark)/2.0))
@@ -303,6 +311,10 @@ xnoremap <silent> <SID>VisualStopBisect <ESC>:call <SID>StopBisect(visualmode())
 " Toggle virtualedit=all
 noremap <unique> <script> <Plug>BisectToggleVirtualEdit <SID>ToggleVirtualEdit
 noremap <silent> <SID>ToggleVirtualEdit <ESC>:call <SID>ToggleVirtualEdit()<CR>
+
+" Toggle bisect_force_varying_line_endings
+noremap <unique> <script> <Plug>BisectToggleVaryingLineEndings <SID>ToggleVaryingLineEndings
+noremap <silent> <SID>ToggleVaryingLineEndings <ESC>:call <SID>ToggleVaryingLineEndings()<CR>
 
 " We add timestamps to invoking visual modes here so that each visual
 " selection can correspond to a single bisection (or group of bisections if
