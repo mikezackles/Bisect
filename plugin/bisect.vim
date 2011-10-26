@@ -168,13 +168,19 @@ function s:NarrowBoundaries(direction)
   elseif a:direction == "right"
     let s:left_mark = s:current_col
     if virtcol('.') < virtcol('$') && s:right_mark > virtcol('$') && (!s:IsVirtualEdit() || exists("g:bisect_force_varying_line_endings"))
-      let l:tmp_right_mark = virtcol('$')
+      let l:varying_line_endings = 1
+      let s:current_col = s:left_mark + float2nr(floor((virtcol('$') - s:left_mark)/2.0))
     else
-      let l:tmp_right_mark = s:right_mark
+      let l:varying_line_endings = 0
+      let s:current_col = s:left_mark + float2nr(floor((s:right_mark - s:left_mark)/2.0))
     endif
-    let s:current_col = s:left_mark + float2nr(floor((l:tmp_right_mark - s:left_mark)/2.0))
     if s:current_col == s:left_mark && !exists("g:bisect_force_strict_bisection")
       call s:SetStartingRightMark()
+      if l:varying_line_endings
+        let l:tmp_right_mark = virtcol('$')
+      else
+        let l:tmp_right_mark = s:right_mark
+      endif
       if s:current_col != l:tmp_right_mark-1
         call s:NarrowBoundaries(a:direction)
       endif
