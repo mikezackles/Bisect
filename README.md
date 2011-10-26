@@ -43,7 +43,7 @@ Strict Bisection
 ----------------
 If you find bisect.vim too "jumpy" by default, try this in your .vimrc:
 
-    let g:bisect_force_strict_bisection = "true"
+    let g:bisect_force_strict_bisection = 1
 
 Remapping
 ---------
@@ -81,11 +81,11 @@ It is possible that you only wish to use some of bisect.vim's functionality.
 
 You can disable bisect features with the following mappings in your .vimrc:
 
-    let g:bisect_disable_horizontal = "true"
-    let g:bisect_disable_vertical = "true"
-    let g:bisect_disable_paging = "true"
-    let g:bisect_force_strict_bisection = "true"
-    let g:bisect_force_varying_line_endings = "true"
+    let g:bisect_disable_horizontal = 1
+    let g:bisect_disable_vertical = 1
+    let g:bisect_disable_paging = 1
+    let g:bisect_force_strict_bisection = 1
+    let g:bisect_force_varying_line_endings = 1
 
 Clearing the Screen
 ----------------------

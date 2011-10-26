@@ -34,11 +34,12 @@ function! s:SaveVisualStartPosition()
   call setpos("'s", getpos('.'))
 endfunction
 
-function! s:GetColFromVirtCol(col)
-  if !s:IsVirtualEdit() && a:col >= virtcol('$') && virtcol('$') != 1
-    return virtcol('$') - 1
+function! s:GetTruncatedCol()
+  let l:rowend = virtcol([s:current_row, '$'])
+  if !s:IsVirtualEdit() && s:current_col >= l:rowend && l:rowend != 1
+    return l:rowend - 1
   else
-    return a:col
+    return s:current_col
   endif
 endfunction
 
@@ -47,12 +48,12 @@ endfunction
 " absolute position in vim.
 function! s:MoveCursor()
   exe "normal! ".s:current_row."G"
-  exe "normal! ".s:GetColFromVirtCol(s:current_col)."|"
+  exe "normal! ".s:GetTruncatedCol()."|"
 endfunction
 
 " Select the appropriate region
 function! s:VisualSelect()
-  exe "normal! `s".visualmode().s:current_row."G".s:GetColFromVirtCol(s:current_col)."|"
+  exe "normal! `s".visualmode().s:current_row."G".s:GetTruncatedCol()."|"
 endfunction
 
 " See if the cursor has moved
@@ -102,7 +103,7 @@ endfunction
 " bisection.  In this case, we make the guess that the user is trying to get
 " to a location on the same line, so we avoid jumping past the end of the
 " line.
-function! s:StartBisect(direction, invoking_mode)
+function! s:StartBisect(invoking_mode)
   let s:current_row = line('.')
   let s:current_col = virtcol('.')
 
@@ -121,11 +122,17 @@ function! s:StartBisect(direction, invoking_mode)
 endfunction
 
 function! s:BisectIsRunning(invoking_mode)
+  "return (exists("s:running") || exists("s:current_bisection_timestamp")) && s:CursorIsAtExpectedLocation()
   if a:invoking_mode == 'n'
     " Normal mode
-    return exists("s:running") && s:running && s:CursorIsAtExpectedLocation()
+    return exists("s:running") && s:CursorIsAtExpectedLocation()
+  elseif virtcol('.') < virtcol('$')
+    "Things are still reliable before the line ending
+    return exists("s:current_bisection_timestamp") && s:current_bisection_timestamp == s:invoke_visual_timestamp && s:CursorIsAtExpectedLocation()
   else
-    " Visual modes
+    "We're past the line ending.  As best I can tell there is a bug in vim
+    "preventing us from reading the cursor's location in visual virtualedit
+    "mode.
     return exists("s:current_bisection_timestamp") && s:current_bisection_timestamp == s:invoke_visual_timestamp
   endif
 endfunction
@@ -192,8 +199,8 @@ endfunction
 " Cancels a bisection, more or less.  In visual mode it allows the user to
 " start from their last bisect location.
 function! s:StopBisect(invoking_mode)
-  if a:invoking_mode == 'n'
-    let s:running = 0
+  if a:invoking_mode == 'n' && exists("s:running")
+    unlet s:running
   else
     let s:current_bisection_timestamp = -1
   endif
@@ -216,7 +223,7 @@ endfunction
 " visual selections.
 function! s:Bisect(direction, invoking_mode)
   if !s:BisectIsRunning(a:invoking_mode)
-    call s:StartBisect(a:direction, a:invoking_mode)
+    call s:StartBisect(a:invoking_mode)
   endif
 
   call s:NarrowBoundaries(a:direction)
