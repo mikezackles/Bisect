@@ -12,7 +12,7 @@ endif
 let g:loaded_bisect = 1
 
 function! s:ToggleVirtualEdit()
-  call s:StopBisect('n')
+  call s:StopBisect()
   if &virtualedit != "all"
     set virtualedit=all
   else
@@ -28,9 +28,7 @@ function! s:ToggleVaryingLineEndings()
   endif
 endfunction
 
-" Save a timestamp for this invocation of visual mode.
 function! s:SaveVisualStartPosition()
-  let s:invoke_visual_timestamp = localtime()
   call setpos("'s", getpos('.'))
 endfunction
 
@@ -58,13 +56,15 @@ endfunction
 
 " See if the cursor has moved
 " If we aren't in virtualedit mode, the cursor may be shifted because of
-" line endings.  For whatever reason, curswant is off by one from the normal
-" cursor representation.
+" line endings.
 function! s:CursorIsAtExpectedLocation()
-  let l:aview = winsaveview()
-  let l:row_passes = s:current_row == l:aview.lnum
-  let l:column_passes = (s:current_col - 1) == l:aview.curswant || s:current_col == virtcol('.')
-  return l:row_passes && l:column_passes
+  return s:invoking_position == s:final_position
+  "let l:row_passes = s:current_row == line(s:invoking_position[1:-1])
+  "let l:column_passes = s:current_col == virtcol(s:invoking_position[1:-1])
+  "if !s:IsVirtualEdit()
+  "  let l:column_passes = l:column_passes || ((s:current_col - 1) == winsaveview().curswant)
+  "endif
+  "return l:row_passes && l:column_passes
 endfunction
 
 " Limit bisections to the longest line on screen.
@@ -103,7 +103,7 @@ endfunction
 " bisection.  In this case, we make the guess that the user is trying to get
 " to a location on the same line, so we avoid jumping past the end of the
 " line.
-function! s:StartBisect(invoking_mode)
+function! s:StartBisect()
   let s:current_row = line('.')
   let s:current_col = virtcol('.')
 
@@ -112,29 +112,12 @@ function! s:StartBisect(invoking_mode)
   call s:SetStartingLeftMark()
   call s:SetStartingRightMark()
 
-  if a:invoking_mode == 'n'
-    " Normal mode
-    let s:running = 1
-  else
-    " Visual modes
-    let s:current_bisection_timestamp = s:invoke_visual_timestamp
-  endif
+  let s:final_position = [-1,-1,-1,-1]
+  let s:running = 1
 endfunction
 
-function! s:BisectIsRunning(invoking_mode)
-  "return (exists("s:running") || exists("s:current_bisection_timestamp")) && s:CursorIsAtExpectedLocation()
-  if a:invoking_mode == 'n'
-    " Normal mode
-    return exists("s:running") && s:CursorIsAtExpectedLocation()
-  elseif virtcol('.') < virtcol('$')
-    "Things are still reliable before the line ending
-    return exists("s:current_bisection_timestamp") && s:current_bisection_timestamp == s:invoke_visual_timestamp && s:CursorIsAtExpectedLocation()
-  else
-    "We're past the line ending.  As best I can tell there is a bug in vim
-    "preventing us from reading the cursor's location in visual virtualedit
-    "mode.
-    return exists("s:current_bisection_timestamp") && s:current_bisection_timestamp == s:invoke_visual_timestamp
-  endif
+function! s:BisectIsRunning()
+  return exists("s:running") && s:CursorIsAtExpectedLocation()
 endfunction
 
 function s:IsVirtualEdit()
@@ -196,13 +179,19 @@ function s:NarrowBoundaries(direction)
   endif
 endfunction
 
-" Cancels a bisection, more or less.  In visual mode it allows the user to
-" start from their last bisect location.
-function! s:StopBisect(invoking_mode)
-  if a:invoking_mode == 'n' && exists("s:running")
+function! s:StopBisect()
+  if exists("s:running")
     unlet s:running
+  endif
+endfunction
+
+function! s:VisualStopBisect()
+  call s:StopBisect()
+  "Reselect the visual selection
+  if getpos("'s") == getpos("'<")
+    exe "normal! `s".visualmode()."`>"
   else
-    let s:current_bisection_timestamp = -1
+    exe "normal! `s".visualmode()."`<"
   endif
 endfunction
 
@@ -211,10 +200,10 @@ function! s:SaveWindowState()
 endfunction
 
 function! s:RestoreWindowState(state)
-  call setpos("'t", getpos("."))
+  let s:final_position = getpos(".")
   let a:state.curswant = s:current_col - 1 " The column that vim 'thinks' we're in if not in virtualedit mode
   call winrestview(a:state)
-  call setpos('.', getpos("'t"))
+  call setpos('.', s:final_position)
 endfunction
 
 " This is the main function.  It sets up some instance variables for a new
@@ -222,8 +211,8 @@ endfunction
 " narrows the bisection boundaries and handles moving the cursor and making
 " visual selections.
 function! s:Bisect(direction, invoking_mode)
-  if !s:BisectIsRunning(a:invoking_mode)
-    call s:StartBisect(a:invoking_mode)
+  if !s:BisectIsRunning()
+    call s:StartBisect()
   endif
 
   call s:NarrowBoundaries(a:direction)
@@ -238,10 +227,24 @@ endfunction
 
 " Wrappers for s:Bisect
 function! s:NormalBisect(direction)
+  let s:invoking_position = getpos('.')
   call s:Bisect(a:direction, 'n')
 endfunction
 
 function! s:VisualBisect(direction)
+  " We know the cursor is at one end of the selection.  This is the *only* way
+  " I've been able to find to get the cursor location in this particular
+  " scenario.  Note that the column will be wrong in visual line mode, so we
+  " just set it to 1 since we don't care about it anyway.  Note that a
+  " horizontal bisection in this case will begin a new global bisection.
+  if visualmode() == "V"
+    normal! 0
+  endif
+  if getpos("'s") == getpos("'<")
+    let s:invoking_position = getpos("'>")
+  else
+    let s:invoking_position = getpos("'<")
+  endif
   call s:Bisect(a:direction, visualmode())
 endfunction
 
@@ -368,14 +371,13 @@ if !hasmapto('<Plug>StopBisect', 'n')
   nmap <C-i> <Plug>StopBisect
 endif
 nnoremap <unique> <script> <Plug>StopBisect <SID>StopBisect
-nnoremap <silent> <SID>StopBisect :call <SID>StopBisect('n')<CR>
-
+nnoremap <silent> <SID>StopBisect :call <SID>StopBisect()<CR>
 " Visual
 if !hasmapto('<Plug>VisualStopBisect', 'v')
   xmap <C-i> <Plug>VisualStopBisect
 endif
 xnoremap <unique> <script> <Plug>VisualStopBisect <SID>VisualStopBisect
-xnoremap <silent> <SID>VisualStopBisect <ESC>:call <SID>StopBisect(visualmode())<CR>gv
+xnoremap <silent> <SID>VisualStopBisect <ESC>:call <SID>VisualStopBisect()<CR>
 
 " Toggle virtualedit=all
 noremap <unique> <script> <Plug>BisectToggleVirtualEdit <SID>ToggleVirtualEdit
@@ -385,9 +387,6 @@ noremap <silent> <SID>ToggleVirtualEdit <ESC>:call <SID>ToggleVirtualEdit()<CR>
 noremap <unique> <script> <Plug>BisectToggleVaryingLineEndings <SID>ToggleVaryingLineEndings
 noremap <silent> <SID>ToggleVaryingLineEndings <ESC>:call <SID>ToggleVaryingLineEndings()<CR>
 
-" We add timestamps to invoking visual modes here so that each visual
-" selection can correspond to a single bisection (or group of bisections if
-" StopBisect is called).
 nnoremap <silent> v :call <SID>SaveVisualStartPosition()<CR>v
 nnoremap <silent> V :call <SID>SaveVisualStartPosition()<CR>V
 nnoremap <silent> <C-v> :call <SID>SaveVisualStartPosition()<CR><C-v>
