@@ -139,14 +139,18 @@ function s:NarrowBoundaries(direction)
     let s:current_row = s:top_mark + float2nr(ceil((s:bottom_mark - s:top_mark)/2.0))
     if s:current_row == s:bottom_mark && !exists("g:bisect_force_strict_bisection")
       call s:SetStartingTopMark()
-      call s:NarrowBoundaries(a:direction)
+      if s:current_row != s:bottom_mark
+        call s:NarrowBoundaries(a:direction)
+      endif
     endif
   elseif a:direction == "down"
     let s:top_mark = s:current_row
     let s:current_row = s:top_mark + float2nr(floor((s:bottom_mark - s:top_mark)/2.0))
     if s:current_row == s:top_mark && !exists("g:bisect_force_strict_bisection")
       call s:SetStartingBottomMark()
-      call s:NarrowBoundaries(a:direction)
+      if s:current_row != s:top_mark
+        call s:NarrowBoundaries(a:direction)
+      endif
     endif
   elseif a:direction == "left"
     let s:right_mark = s:current_col
@@ -157,7 +161,9 @@ function s:NarrowBoundaries(direction)
     endif
     if s:current_col == s:right_mark && !exists("g:bisect_force_strict_bisection")
       call s:SetStartingLeftMark()
-      call s:NarrowBoundaries(a:direction)
+      if s:current_col != s:right_mark
+        call s:NarrowBoundaries(a:direction)
+      endif
     endif
   elseif a:direction == "right"
     let s:left_mark = s:current_col
@@ -168,7 +174,9 @@ function s:NarrowBoundaries(direction)
     endif
     if s:current_col == s:left_mark && !exists("g:bisect_force_strict_bisection")
       call s:SetStartingRightMark()
-      call s:NarrowBoundaries(a:direction)
+      if s:current_col != s:left_mark
+        call s:NarrowBoundaries(a:direction)
+      endif
     endif
   endif
 endfunction
