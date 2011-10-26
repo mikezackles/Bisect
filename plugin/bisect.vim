@@ -80,6 +80,22 @@ function! s:MaxLineLength()
   return l:max_so_far
 endfunction
 
+function! s:SetStartingTopMark()
+  let s:top_mark = line('w0') - 1
+endfunction
+
+function! s:SetStartingBottomMark()
+  let s:bottom_mark = line('w$') + 1
+endfunction
+
+function! s:SetStartingLeftMark()
+  let s:left_mark = winsaveview().leftcol
+endfunction
+
+function! s:SetStartingRightMark()
+  let s:right_mark = s:MaxLineLength()
+endfunction
+
 " This function determines the initial parameters of a bisection.  There is a
 " special exception made for the case that BisectRight is called to start a
 " bisection.  In this case, we make the guess that the user is trying to get
@@ -89,10 +105,10 @@ function! s:StartBisect(direction, invoking_mode)
   let s:current_row = line('.')
   let s:current_col = virtcol('.')
 
-  let s:top_mark = line('w0') - 1
-  let s:bottom_mark = line('w$') + 1
-  let s:left_mark = winsaveview()['leftcol']
-  let s:right_mark = s:MaxLineLength()
+  call s:SetStartingTopMark()
+  call s:SetStartingBottomMark()
+  call s:SetStartingLeftMark()
+  call s:SetStartingRightMark()
 
   if a:invoking_mode == 'n'
     " Normal mode
@@ -121,9 +137,17 @@ function s:NarrowBoundaries(direction)
   if a:direction == "up"
     let s:bottom_mark = s:current_row
     let s:current_row = s:top_mark + float2nr(ceil((s:bottom_mark - s:top_mark)/2.0))
+    if s:current_row == s:bottom_mark && !exists("g:bisect_force_strict_bisection")
+      call s:SetStartingTopMark()
+      call s:NarrowBoundaries(a:direction)
+    endif
   elseif a:direction == "down"
     let s:top_mark = s:current_row
     let s:current_row = s:top_mark + float2nr(floor((s:bottom_mark - s:top_mark)/2.0))
+    if s:current_row == s:top_mark && !exists("g:bisect_force_strict_bisection")
+      call s:SetStartingBottomMark()
+      call s:NarrowBoundaries(a:direction)
+    endif
   elseif a:direction == "left"
     let s:right_mark = s:current_col
     if virtcol('.') < virtcol('$') && (!s:IsVirtualEdit() || exists("g:bisect_force_varying_line_endings"))
@@ -131,12 +155,20 @@ function s:NarrowBoundaries(direction)
     else
       let s:current_col = s:left_mark + float2nr(ceil((s:right_mark - s:left_mark)/2.0))
     endif
+    if s:current_col == s:right_mark && !exists("g:bisect_force_strict_bisection")
+      call s:SetStartingLeftMark()
+      call s:NarrowBoundaries(a:direction)
+    endif
   elseif a:direction == "right"
     let s:left_mark = s:current_col
     if virtcol('.') < virtcol('$') && s:right_mark > virtcol('$') && (!s:IsVirtualEdit() || exists("g:bisect_force_varying_line_endings"))
       let s:current_col = s:left_mark + float2nr(floor((virtcol('$') - s:left_mark)/2.0))
     else
       let s:current_col = s:left_mark + float2nr(floor((s:right_mark - s:left_mark)/2.0))
+    endif
+    if s:current_col == s:left_mark && !exists("g:bisect_force_strict_bisection")
+      call s:SetStartingRightMark()
+      call s:NarrowBoundaries(a:direction)
     endif
   endif
 endfunction
@@ -222,7 +254,7 @@ endfunction
 
 " User can either remap these or disable them entirely
 " Vertical bisection
-if !exists("bisect_disable_vertical")
+if !exists("g:bisect_disable_vertical")
   " Normal
   if !hasmapto('<Plug>BisectDown', 'n')
     nmap <C-j> <Plug>BisectDown
@@ -249,7 +281,7 @@ if !exists("bisect_disable_vertical")
 endif
 
 " Horizontal bisection
-if !exists("bisect_disable_horizontal")
+if !exists("g:bisect_disable_horizontal")
   " Normal
   if !hasmapto('<Plug>BisectLeft', 'n')
     nmap <C-h> <Plug>BisectLeft
@@ -276,7 +308,7 @@ if !exists("bisect_disable_horizontal")
 endif
 
 " Paging
-if !exists("bisect_disable_paging")
+if !exists("g:bisect_disable_paging")
   if !hasmapto('<Plug>BisectPageDown', 'n')
     map J <Plug>BisectPageDown
   endif
