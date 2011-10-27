@@ -296,79 +296,91 @@ endfunction
 " Vertical bisection
 if !exists("g:bisect_disable_vertical")
   " Normal
-  if !hasmapto('<Plug>BisectDown', 'n')
-    nmap <C-j> <Plug>BisectDown
+  if !exists("g:bisect_disable_normal")
+    if !hasmapto('<Plug>BisectDown', 'n')
+      nmap <C-j> <Plug>BisectDown
+    endif
+    if !hasmapto('<Plug>BisectUp', 'n')
+      nmap <C-k> <Plug>BisectUp
+    endif
+    nnoremap <unique> <script> <Plug>BisectDown <SID>BisectDown
+    nnoremap <unique> <script> <Plug>BisectUp <SID>BisectUp
+    nnoremap <silent> <SID>BisectDown :call <SID>NormalBisect("down")<CR>
+    nnoremap <silent> <SID>BisectUp :call <SID>NormalBisect("up")<CR>
   endif
-  if !hasmapto('<Plug>BisectUp', 'n')
-    nmap <C-k> <Plug>BisectUp
-  endif
-  nnoremap <unique> <script> <Plug>BisectDown <SID>BisectDown
-  nnoremap <unique> <script> <Plug>BisectUp <SID>BisectUp
-  nnoremap <silent> <SID>BisectDown :call <SID>NormalBisect("down")<CR>
-  nnoremap <silent> <SID>BisectUp :call <SID>NormalBisect("up")<CR>
 
   " Visual
-  if !hasmapto('<Plug>VisualBisectDown', 'v')
-    xmap <C-j> <Plug>VisualBisectDown
+  if !exists("g:bisect_disable_visual")
+    if !hasmapto('<Plug>VisualBisectDown', 'v')
+      xmap <C-j> <Plug>VisualBisectDown
+    endif
+    if !hasmapto('<Plug>VisualBisectUp', 'v')
+      xmap <C-k> <Plug>VisualBisectUp
+    endif
+    xnoremap <unique> <script> <Plug>VisualBisectDown <SID>VisualBisectDown
+    xnoremap <unique> <script> <Plug>VisualBisectUp <SID>VisualBisectUp
+    xnoremap <silent> <SID>VisualBisectDown <ESC>:call <SID>VisualBisect("down")<CR>
+    xnoremap <silent> <SID>VisualBisectUp <ESC>:call <SID>VisualBisect("up")<CR>
   endif
-  if !hasmapto('<Plug>VisualBisectUp', 'v')
-    xmap <C-k> <Plug>VisualBisectUp
-  endif
-  xnoremap <unique> <script> <Plug>VisualBisectDown <SID>VisualBisectDown
-  xnoremap <unique> <script> <Plug>VisualBisectUp <SID>VisualBisectUp
-  xnoremap <silent> <SID>VisualBisectDown <ESC>:call <SID>VisualBisect("down")<CR>
-  xnoremap <silent> <SID>VisualBisectUp <ESC>:call <SID>VisualBisect("up")<CR>
 
   " Insert
-  if !hasmapto('<Plug>InsertBisectDown', 'i')
-    imap <C-j> <Plug>InsertBisectDown
+  if !exists("g:bisect_disable_insert")
+    if !hasmapto('<Plug>InsertBisectDown', 'i')
+      imap <C-j> <Plug>InsertBisectDown
+    endif
+    if !hasmapto('<Plug>InsertBisectUp', 'i')
+      imap <C-k> <Plug>InsertBisectUp
+    endif
+    inoremap <unique> <script> <Plug>InsertBisectDown <SID>InsertBisectDown
+    inoremap <unique> <script> <Plug>InsertBisectUp <SID>InsertBisectUp
+    inoremap <silent> <SID>InsertBisectDown <ESC>:call <SID>InsertBisect("down")<CR>i
+    inoremap <silent> <SID>InsertBisectUp <ESC>:call <SID>InsertBisect("up")<CR>i
   endif
-  if !hasmapto('<Plug>InsertBisectUp', 'i')
-    imap <C-k> <Plug>InsertBisectUp
-  endif
-  inoremap <unique> <script> <Plug>InsertBisectDown <SID>InsertBisectDown
-  inoremap <unique> <script> <Plug>InsertBisectUp <SID>InsertBisectUp
-  inoremap <silent> <SID>InsertBisectDown <ESC>:call <SID>InsertBisect("down")<CR>i
-  inoremap <silent> <SID>InsertBisectUp <ESC>:call <SID>InsertBisect("up")<CR>i
 endif
 
 " Horizontal bisection
 if !exists("g:bisect_disable_horizontal")
   " Normal
-  if !hasmapto('<Plug>BisectLeft', 'n')
-    nmap <C-h> <Plug>BisectLeft
+  if !exists("g:bisect_disable_normal")
+    if !hasmapto('<Plug>BisectLeft', 'n')
+      nmap <C-h> <Plug>BisectLeft
+    endif
+    if !hasmapto('<Plug>BisectRight', 'n')
+      nmap <C-l> <Plug>BisectRight
+    endif
+    nnoremap <unique> <script> <Plug>BisectLeft <SID>BisectLeft
+    nnoremap <unique> <script> <Plug>BisectRight <SID>BisectRight
+    nnoremap <silent> <SID>BisectLeft :call <SID>NormalBisect("left")<CR>
+    nnoremap <silent> <SID>BisectRight :call <SID>NormalBisect("right")<CR>
   endif
-  if !hasmapto('<Plug>BisectRight', 'n')
-    nmap <C-l> <Plug>BisectRight
-  endif
-  nnoremap <unique> <script> <Plug>BisectLeft <SID>BisectLeft
-  nnoremap <unique> <script> <Plug>BisectRight <SID>BisectRight
-  nnoremap <silent> <SID>BisectLeft :call <SID>NormalBisect("left")<CR>
-  nnoremap <silent> <SID>BisectRight :call <SID>NormalBisect("right")<CR>
 
   " Visual
-  if !hasmapto('<Plug>VisualBisectLeft', 'v')
-    xmap <C-h> <Plug>VisualBisectLeft
+  if !exists("g:bisect_disable_visual")
+    if !hasmapto('<Plug>VisualBisectLeft', 'v')
+      xmap <C-h> <Plug>VisualBisectLeft
+    endif
+    if !hasmapto('<Plug>VisualBisectRight', 'v')
+      xmap <C-l> <Plug>VisualBisectRight
+    endif
+    xnoremap <unique> <script> <Plug>VisualBisectLeft <SID>VisualBisectLeft
+    xnoremap <unique> <script> <Plug>VisualBisectRight <SID>VisualBisectRight
+    xnoremap <silent> <SID>VisualBisectLeft <ESC>:call <SID>VisualBisect("left")<CR>
+    xnoremap <silent> <SID>VisualBisectRight <ESC>:call <SID>VisualBisect("right")<CR>
   endif
-  if !hasmapto('<Plug>VisualBisectRight', 'v')
-    xmap <C-l> <Plug>VisualBisectRight
-  endif
-  xnoremap <unique> <script> <Plug>VisualBisectLeft <SID>VisualBisectLeft
-  xnoremap <unique> <script> <Plug>VisualBisectRight <SID>VisualBisectRight
-  xnoremap <silent> <SID>VisualBisectLeft <ESC>:call <SID>VisualBisect("left")<CR>
-  xnoremap <silent> <SID>VisualBisectRight <ESC>:call <SID>VisualBisect("right")<CR>
 
   " Insert
-  if !hasmapto('<Plug>BisectLeft', 'i')
-    imap <C-h> <Plug>InsertBisectLeft
+  if !exists("g:bisect_disable_insert")
+    if !hasmapto('<Plug>BisectLeft', 'i')
+      imap <C-h> <Plug>InsertBisectLeft
+    endif
+    if !hasmapto('<Plug>BisectRight', 'i')
+      imap <C-l> <Plug>InsertBisectRight
+    endif
+    inoremap <unique> <script> <Plug>InsertBisectLeft <SID>InsertBisectLeft
+    inoremap <unique> <script> <Plug>InsertBisectRight <SID>InsertBisectRight
+    inoremap <silent> <SID>InsertBisectLeft <ESC>:call <SID>InsertBisect("left")<CR>i
+    inoremap <silent> <SID>InsertBisectRight <ESC>:call <SID>InsertBisect("right")<CR>i
   endif
-  if !hasmapto('<Plug>BisectRight', 'i')
-    imap <C-l> <Plug>InsertBisectRight
-  endif
-  inoremap <unique> <script> <Plug>InsertBisectLeft <SID>InsertBisectLeft
-  inoremap <unique> <script> <Plug>InsertBisectRight <SID>InsertBisectRight
-  inoremap <silent> <SID>InsertBisectLeft <ESC>:call <SID>InsertBisect("left")<CR>i
-  inoremap <silent> <SID>InsertBisectRight <ESC>:call <SID>InsertBisect("right")<CR>i
 endif
 
 " Paging

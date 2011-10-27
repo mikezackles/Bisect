@@ -87,6 +87,9 @@ You can disable bisect features with the following mappings in your .vimrc:
     let g:bisect_disable_paging = 1
     let g:bisect_force_strict_bisection = 1
     let g:bisect_force_varying_line_endings = 1
+    let g:bisect_disable_normal
+    let g:bisect_disable_visual
+    let g:bisect_disable_insert
 
 Clearing the Screen
 ----------------------
