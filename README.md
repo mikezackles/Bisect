@@ -14,7 +14,7 @@ of the current bisection.  See below for how to disable this.
 
 Horizontal and vertical commands can be interleaved.
 
-Works in normal and all visual modes.
+Works in normal mode, insert mode, and all visual modes.
 
 Paging
 ------

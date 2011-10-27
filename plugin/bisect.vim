@@ -252,6 +252,11 @@ function! s:VisualBisect(direction)
   call s:Bisect(a:direction, visualmode())
 endfunction
 
+function! s:InsertBisect(direction)
+  call setpos('.', getpos("'^")) " Move the cursor back to where it was in insert mode
+  call s:NormalBisect(a:direction)
+endfunction
+
 function! s:PageDown()
   let l:bottomline = winsaveview().topline+winheight(0)
   let l:col = virtcol('.')
@@ -313,6 +318,18 @@ if !exists("g:bisect_disable_vertical")
   xnoremap <unique> <script> <Plug>VisualBisectUp <SID>VisualBisectUp
   xnoremap <silent> <SID>VisualBisectDown <ESC>:call <SID>VisualBisect("down")<CR>
   xnoremap <silent> <SID>VisualBisectUp <ESC>:call <SID>VisualBisect("up")<CR>
+
+  " Insert
+  if !hasmapto('<Plug>InsertBisectDown', 'i')
+    imap <C-j> <Plug>InsertBisectDown
+  endif
+  if !hasmapto('<Plug>InsertBisectUp', 'i')
+    imap <C-k> <Plug>InsertBisectUp
+  endif
+  inoremap <unique> <script> <Plug>InsertBisectDown <SID>InsertBisectDown
+  inoremap <unique> <script> <Plug>InsertBisectUp <SID>InsertBisectUp
+  inoremap <silent> <SID>InsertBisectDown <ESC>:call <SID>InsertBisect("down")<CR>i
+  inoremap <silent> <SID>InsertBisectUp <ESC>:call <SID>InsertBisect("up")<CR>i
 endif
 
 " Horizontal bisection
@@ -340,6 +357,18 @@ if !exists("g:bisect_disable_horizontal")
   xnoremap <unique> <script> <Plug>VisualBisectRight <SID>VisualBisectRight
   xnoremap <silent> <SID>VisualBisectLeft <ESC>:call <SID>VisualBisect("left")<CR>
   xnoremap <silent> <SID>VisualBisectRight <ESC>:call <SID>VisualBisect("right")<CR>
+
+  " Insert
+  if !hasmapto('<Plug>BisectLeft', 'i')
+    imap <C-h> <Plug>InsertBisectLeft
+  endif
+  if !hasmapto('<Plug>BisectRight', 'i')
+    imap <C-l> <Plug>InsertBisectRight
+  endif
+  inoremap <unique> <script> <Plug>InsertBisectLeft <SID>InsertBisectLeft
+  inoremap <unique> <script> <Plug>InsertBisectRight <SID>InsertBisectRight
+  inoremap <silent> <SID>InsertBisectLeft <ESC>:call <SID>InsertBisect("left")<CR>i
+  inoremap <silent> <SID>InsertBisectRight <ESC>:call <SID>InsertBisect("right")<CR>i
 endif
 
 " Paging
