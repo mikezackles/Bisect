@@ -370,10 +370,10 @@ if !exists("g:bisect_disable_horizontal")
 
   " Insert
   if !exists("g:bisect_disable_insert")
-    if !hasmapto('<Plug>BisectLeft', 'i')
+    if !hasmapto('<Plug>InsertBisectLeft', 'i')
       imap <C-h> <Plug>InsertBisectLeft
     endif
-    if !hasmapto('<Plug>BisectRight', 'i')
+    if !hasmapto('<Plug>InsertBisectRight', 'i')
       imap <C-l> <Plug>InsertBisectRight
     endif
     inoremap <unique> <script> <Plug>InsertBisectLeft <SID>InsertBisectLeft
@@ -420,6 +420,12 @@ if !hasmapto('<Plug>VisualStopBisect', 'v')
 endif
 xnoremap <unique> <script> <Plug>VisualStopBisect <SID>VisualStopBisect
 xnoremap <silent> <SID>VisualStopBisect <ESC>:call <SID>VisualStopBisect()<CR>
+" Insert
+if !hasmapto('<Plug>InsertStopBisect', 'i')
+  imap <C-i> <Plug>InsertStopBisect
+endif
+inoremap <unique> <script> <Plug>InsertStopBisect <SID>InsertStopBisect
+inoremap <silent> <SID>InsertStopBisect <ESC>:call <SID>StopBisect()<CR>i
 
 " Toggle virtualedit=all
 noremap <unique> <script> <Plug>BisectToggleVirtualEdit <SID>ToggleVirtualEdit
