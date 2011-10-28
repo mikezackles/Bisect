@@ -113,6 +113,16 @@ Suggestions
 
 As mentioned before, please try virtualedit mode with bisect.vim
 
+I use
+
+    let g:bisect_force_varying_line_endings = 1
+
+with virtualedit mode.  This setting will make right bisections use the current
+line ending instead of the length of the longest visible line.  Of course, if
+the cursor is past the line ending, right bisections will work as normal.  With
+this set you can still jump past the line ending once you reach it if you
+haven't forced strict bisection.
+
 You may also want to try
 
     set cursorline
