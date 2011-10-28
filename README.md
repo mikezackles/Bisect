@@ -14,13 +14,20 @@ of the current bisection.  See below for how to disable this.
 
 Horizontal and vertical commands can be interleaved.
 
-Works in normal mode, insert mode, and all visual modes.
+Works in normal mode, insert mode, and all visual modes.  (Note that
+insert mode was added after version 2.0 on vim.org, so you'll currently
+need to install from this repository if you wish to use it).
 
 Paging
 ------
 
-By default, H,J,K, and L will center the cursor half a page to the left, down,
-up, or right, respectively.
+By default, H,J,K, and L will center the cursor half a page to the left,
+down, up, or right, respectively.  This isn't currently enabled in insert
+mode for obvious reasons.
+
+Also note that paging will currently cancel visual selections.
+Unfortunately I'm not terribly hopefully about getting this working any
+time soon because of the way vim handles visual mode.
 
 VirtualEdit
 -----------
@@ -127,3 +134,9 @@ You may also want to try
 
     set cursorline
     set cursorcolumn
+
+Plug
+----
+
+If you like this plugin, please vote for it on vim.org!
+http://www.vim.org/scripts/script.php?script_id=2960
