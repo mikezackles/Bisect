@@ -1,4 +1,4 @@
-"Vim global plugin which allows navigation via bisection
+" Vim global plugin which allows navigation via bisection
 " Last Change: 2011 Oct 24
 " Author:      Zachary Michaels |mikezackles
 "                               |    @t
@@ -46,20 +46,11 @@ function! s:GetTruncatedCol()
 endfunction
 
 " Move the cursor to the next location.
-function! s:MoveCursor( line, col )
-  "call s:CursorToLine(a:line)
-  call s:MoveToScreenLine(a:line)
-  call s:CursorToCol(a:col)
-endfunction
-
-function! s:CursorToLine( line_number )
-  exe "normal! ".a:line_number."G"
-endfunction
-
 " Note that the | command is the only way (that I've found) to move to an
 " absolute position in vim.
-function! s:CursorToCol( col_number )
-  exe "normal! ".a:col_number."|"
+function! s:MoveCursor()
+  exe "normal! ".s:current_row."G"
+  exe "normal! ".s:GetTruncatedCol()."|"
 endfunction
 
 " Select the appropriate region
@@ -79,7 +70,7 @@ endfunction
 function! s:MaxLineLength()
   let l:max_width = winwidth(0)+virtcol('.')-wincol()+1
   let l:max_so_far = 0
-  for linenum in range(s:GetScreenLine('w0'), s:GetScreenLine('w$'))
+  for linenum in range(line('w0'), line('w$'))
     let l:line_length = virtcol([linenum,'$'])
     if l:line_length > l:max_width
       return l:max_width
@@ -90,32 +81,12 @@ function! s:MaxLineLength()
   return l:max_so_far
 endfunction
 
-function! s:GetScreenLine( expr )
-  let current_line = line(".")
-  let dest_line = line( a:expr )
-  call s:CursorToLine( dest_line )
-  let result = winline()
-  call s:CursorToLine( current_line )
-  return result
-endfunction
-
-function! s:MoveDownNScreenLines( num_lines )
-  if ( a:num_lines != 0 )
-    exe "normal! ".a:num_lines."gj"
-  endif
-endfunction
-
-function! s:MoveToScreenLine( line_number )
-  call s:CursorToLine(line('w0'))
-  call s:MoveDownNScreenLines( a:line_number - 1 )
-endfunction
-
 function! s:SetStartingTopMark()
-  let s:top_mark = s:GetScreenLine('w0') - 1
+  let s:top_mark = line('w0') - 1
 endfunction
 
 function! s:SetStartingBottomMark()
-  let s:bottom_mark = s:GetScreenLine('w$') + 1
+  let s:bottom_mark = line('w$') + 1
 endfunction
 
 function! s:SetStartingLeftMark()
@@ -132,7 +103,7 @@ endfunction
 " to a location on the same line, so we avoid jumping past the end of the
 " line.
 function! s:StartBisect()
-  let s:current_row = s:GetScreenLine('.')
+  let s:current_row = line('.')
   let s:current_col = virtcol('.')
 
   call s:SetStartingTopMark()
@@ -207,8 +178,6 @@ function s:NarrowBoundaries(direction)
       endif
     endif
   endif
-  " debugging
-  "echo "[".s:top_mark.",".s:current_row.",".s:bottom_mark."] [".s:left_mark.",".s:current_col.",".virtcol('$').",".s:right_mark."]" | redraw
 endfunction
 
 function! s:StopBisect()
@@ -251,7 +220,7 @@ function! s:Bisect(direction, invoking_mode)
   call s:NarrowBoundaries(a:direction)
   let l:state = s:SaveWindowState()
   if a:invoking_mode == 'n'
-    call s:MoveCursor(s:current_row, s:GetTruncatedCol())
+    call s:MoveCursor()
   else
     call s:VisualSelect()
   endif
