@@ -293,15 +293,13 @@ function! s:InsertBisect(direction)
 endfunction
 
 function! s:PageDown()
-  let l:bottomline = winsaveview().topline+winheight(0)
-  let l:col = virtcol('.')
-  exe "normal! ".l:bottomline."G"
-  exe "normal! ".l:col."|"
+  call s:MoveToScreenLine(winheight(0))
+  call s:CursorToCol(virtcol('.'))
   normal! zz
 endfunction
 
 function! s:PageUp()
-  let l:topline = winsaveview().topline-1
+  let l:topline = line("w0")-1
   if l:topline > 0
     let l:col = virtcol('.')
     exe "normal! ".l:topline."G"
