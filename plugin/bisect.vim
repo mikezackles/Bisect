@@ -95,11 +95,10 @@ function! s:MaxLineLength()
 endfunction
 
 function! s:GetScreenLine( expr )
-  let current_line = line(".")
-  let dest_line = line( a:expr )
-  call s:CursorToLine( dest_line )
+  let saved = getpos(".")
+  call s:CursorToLine( line(a:expr) )
   let result = winline()
-  call s:CursorToLine( current_line )
+  call setpos('.', saved)
   return result
 endfunction
 
