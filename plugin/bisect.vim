@@ -65,10 +65,10 @@ endfunction
 " Select the appropriate region
 function! s:VisualSelect()
   call setpos('.', s:visual_start_position)
-  if (s:current_row != 0)
-    exe "normal! ".visualmode().line("w0")."G".s:current_row."gj".s:GetTruncatedCol()."|"
+  if (s:current_row == 1)
+    exe "normal! ".visualmode().line("w0")."G".s:GetTruncatedCol()."|"
   else
-    exe "normal! ".visualmode().s:GetTruncatedCol()."|"
+    exe "normal! ".visualmode().line("w0")."G".(s:current_row-1)."gj".s:GetTruncatedCol()."|"
   endif
 endfunction
 
@@ -83,7 +83,7 @@ endfunction
 function! s:MaxLineLength()
   let l:max_width = winwidth(0)+virtcol('.')-wincol()+1
   let l:max_so_far = 0
-  for linenum in range(s:GetScreenLine('w0'), s:GetScreenLine('w$'))
+  for linenum in range(line('w0'), line('w$'))
     let l:line_length = virtcol([linenum,'$'])
     if l:line_length > l:max_width
       return l:max_width
