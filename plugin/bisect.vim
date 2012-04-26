@@ -65,7 +65,11 @@ endfunction
 " Select the appropriate region
 function! s:VisualSelect()
   call setpos('.', s:visual_start_position)
-  exe "normal! ".visualmode().s:current_row."G".s:GetTruncatedCol()."|"
+  if (s:current_row != 0)
+    exe "normal! ".visualmode().line("w0")."G".s:current_row."gj".s:GetTruncatedCol()."|"
+  else
+    exe "normal! ".visualmode().s:GetTruncatedCol()."|"
+  endif
 endfunction
 
 " See if the cursor has moved
