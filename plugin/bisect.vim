@@ -11,6 +11,13 @@ if exists("loaded_bisect")
 endif
 let g:loaded_bisect = 1
 
+function! s:Do(vmode, expr)
+  let str = a:vmode.a:expr
+  if (str != "")
+    exe "normal! ".str
+  endif
+endfunction
+
 function! s:ToggleVirtualEdit()
   call s:StopBisect()
   if &virtualedit != "all"
@@ -45,30 +52,31 @@ function! s:GetTruncatedCol()
   endif
 endfunction
 
-" Move the cursor to the next location.
-function! s:MoveCursor( line, col )
-  "call s:CursorToLine(a:line)
-  call s:MoveToScreenLine(a:line)
-  call s:CursorToCol(a:col)
+function! s:MoveScreenCursorStr( line, col )
+  return s:MoveToScreenLineStr(a:line).s:MoveToColStr(a:col)
 endfunction
 
-function! s:CursorToLine( line_number )
-  exe "normal! ".a:line_number."G"
+function! s:MoveFileCursorStr( line, col )
+  return s:MoveToFileLineStr(a:line).s:MoveToColStr(a:col)
+endfunction
+
+function! s:MoveToFileLineStr( line_number )
+  return a:line_number."G"
 endfunction
 
 " Note that the | command is the only way (that I've found) to move to an
 " absolute position in vim.
-function! s:CursorToCol( col_number )
-  exe "normal! ".a:col_number."|"
+function! s:MoveToColStr( col_number )
+  return a:col_number."|"
 endfunction
 
 " Select the appropriate region
 function! s:VisualSelect()
   call setpos('.', s:visual_start_position)
   if (s:current_row == 1)
-    exe "normal! ".visualmode().line("w0")."G".s:GetTruncatedCol()."|"
+    call s:Do(visualmode(), line("w0")."G".s:GetTruncatedCol()."|")
   else
-    exe "normal! ".visualmode().line("w0")."G".(s:current_row-1)."gj".s:GetTruncatedCol()."|"
+    call s:Do(visualmode(), line("w0")."G".(s:current_row-1)."gj".s:GetTruncatedCol()."|")
   endif
 endfunction
 
@@ -96,37 +104,34 @@ endfunction
 
 function! s:GetScreenLine( expr )
   let saved = getpos(".")
-  call s:CursorToLine( line(a:expr) )
+  call s:Do('', s:MoveToFileLineStr(line(a:expr)))
   let result = winline()
   call setpos('.', saved)
   return result
 endfunction
 
-function! s:MoveDownNScreenLines( num_lines )
-  if ( a:num_lines != 0 )
-    exe "normal! ".a:num_lines."gj"
+function! s:MoveDownNScreenLinesStr( num_lines )
+  if (a:num_lines == 0)
+    return ""
+  else
+    return a:num_lines."gj"
   endif
 endfunction
 
-function! s:MoveToScreenLine( line_number )
-  call s:CursorToLine(line('w0'))
-  call s:MoveDownNScreenLines( a:line_number - 1 )
+function! s:MoveToScreenLineStr( line_number )
+  return s:MoveToFileLineStr(line('w0')).s:MoveDownNScreenLinesStr( a:line_number - 1 )
 endfunction
 
-function! s:SetStartingTopMark()
-  let s:top_mark = s:GetScreenLine('w0') - 1
+function! s:ScreenTopLine()
+  return s:GetScreenLine('w0') - 1
 endfunction
 
-function! s:SetStartingBottomMark()
-  let s:bottom_mark = s:GetScreenLine('w$') + 1
+function! s:ScreenBottomLine()
+  return s:GetScreenLine('w$') + 1
 endfunction
 
-function! s:SetStartingLeftMark()
-  let s:left_mark = winsaveview().leftcol
-endfunction
-
-function! s:SetStartingRightMark()
-  let s:right_mark = s:MaxLineLength()
+function! s:ScreenLeftCol()
+  return winsaveview().leftcol
 endfunction
 
 " This function determines the initial parameters of a bisection.  There is a
@@ -138,10 +143,10 @@ function! s:StartBisect()
   let s:current_row = s:GetScreenLine('.')
   let s:current_col = virtcol('.')
 
-  call s:SetStartingTopMark()
-  call s:SetStartingBottomMark()
-  call s:SetStartingLeftMark()
-  call s:SetStartingRightMark()
+  let s:top_mark = s:ScreenTopLine()
+  let s:bottom_mark = s:ScreenBottomLine()
+  let s:left_mark = s:ScreenLeftCol()
+  let s:right_mark = s:MaxLineLength()
 
   let s:final_position = [-1,-1,-1,-1]
   let s:running = 1
@@ -162,7 +167,7 @@ function s:NarrowBoundaries(direction)
     let s:bottom_mark = s:current_row
     let s:current_row = s:top_mark + float2nr(ceil((s:bottom_mark - s:top_mark)/2.0))
     if s:current_row == s:bottom_mark && !exists("g:bisect_force_strict_bisection")
-      call s:SetStartingTopMark()
+      let s:top_mark = s:ScreenTopLine()
       if s:current_row != s:top_mark+1
         call s:NarrowBoundaries(a:direction)
       endif
@@ -171,7 +176,7 @@ function s:NarrowBoundaries(direction)
     let s:top_mark = s:current_row
     let s:current_row = s:top_mark + float2nr(floor((s:bottom_mark - s:top_mark)/2.0))
     if s:current_row == s:top_mark && !exists("g:bisect_force_strict_bisection")
-      call s:SetStartingBottomMark()
+      let s:bottom_mark = s:ScreenBottomLine()
       if s:current_row != s:bottom_mark-1
         call s:NarrowBoundaries(a:direction)
       endif
@@ -184,7 +189,7 @@ function s:NarrowBoundaries(direction)
       let s:current_col = s:left_mark + float2nr(ceil((s:right_mark - s:left_mark)/2.0))
     endif
     if s:current_col == s:right_mark && !exists("g:bisect_force_strict_bisection")
-      call s:SetStartingLeftMark()
+      let s:left_mark = s:ScreenLeftCol()
       if s:current_col != s:left_mark+1
         call s:NarrowBoundaries(a:direction)
       endif
@@ -199,7 +204,7 @@ function s:NarrowBoundaries(direction)
       let s:current_col = s:left_mark + float2nr(floor((s:right_mark - s:left_mark)/2.0))
     endif
     if s:current_col == s:left_mark && !exists("g:bisect_force_strict_bisection")
-      call s:SetStartingRightMark()
+      let s:right_mark = s:MaxLineLength()
       if l:varying_line_endings
         let l:tmp_right_mark = virtcol('$')
       else
@@ -254,7 +259,7 @@ function! s:Bisect(direction, invoking_mode)
   call s:NarrowBoundaries(a:direction)
   let l:state = s:SaveWindowState()
   if a:invoking_mode == 'n'
-    call s:MoveCursor(s:current_row, s:GetTruncatedCol())
+    call s:Do('', s:MoveScreenCursorStr(s:current_row, s:GetTruncatedCol()))
   else
     call s:VisualSelect()
   endif
@@ -291,19 +296,20 @@ function! s:InsertBisect(direction)
   call s:NormalBisect(a:direction)
 endfunction
 
-function! s:PageDown()
-  call s:MoveToScreenLine(winheight(0))
-  call s:CursorToCol(virtcol('.'))
-  normal! zz
+function! s:CenterVerticallyOnCursorStr()
+  return "zz"
 endfunction
 
-function! s:PageUp()
+function! s:PageDownStr()
+  return s:MoveToScreenLineStr(winheight(0)).s:MoveToColStr(virtcol('.')).s:CenterVerticallyOnCursorStr()
+endfunction
+
+function! s:PageUpStr()
   let l:topline = line("w0")-1
   if l:topline > 0
-    let l:col = virtcol('.')
-    exe "normal! ".l:topline."G"
-    exe "normal! ".l:col."|"
-    normal! zz
+    return s:MoveFileCursorStr(l:topline, virtcol('.')).s:CenterVerticallyOnCursorStr()
+  else
+    return ""
   endif
 endfunction
 
@@ -418,23 +424,34 @@ endif
 " Paging
 if !exists("g:bisect_disable_paging")
   if !hasmapto('<Plug>BisectPageDown', 'n')
-    map J <Plug>BisectPageDown
+    nmap J <Plug>BisectPageDown
   endif
+  nnoremap <silent> <unique> <script> <Plug>BisectPageDown  <ESC>:call <SID>Do('', <SID>PageDownStr())<CR>
+
+  if !hasmapto('<Plug>BisectPageDown', 'v')
+    xmap J <Plug>BisectVisualPageDown
+  endif
+  xnoremap <silent> <unique> <script> <Plug>BisectVisualPageDown  <ESC>:call <SID>Do(visualmode(), <SID>PageDownStr())<CR>
+
   if !hasmapto('<Plug>BisectPageUp', 'n')
-    map K <Plug>BisectPageUp
+    nmap K <Plug>BisectPageUp
   endif
+  nnoremap <silent> <unique> <script> <Plug>BisectPageUp  <ESC>:call <SID>Do('', <SID>PageUpStr())<CR>
+
+  if !hasmapto('<Plug>BisectVisualPageUp', 'v')
+    xmap K <Plug>BisectVisualPageUp
+  endif
+  xnoremap <silent> <unique> <script> <Plug>BisectVisualPageUp  <ESC>:call <SID>Do(visualmode(), <SID>PageUpStr())<CR>
+
+  " TODO - support visual mode for these as well
   if !hasmapto('<Plug>BisectPageLeft', 'n')
     map H <Plug>BisectPageLeft
   endif
   if !hasmapto('<Plug>BisectPageRight', 'n')
     map L <Plug>BisectPageRight
   endif
-  noremap <unique> <script> <Plug>BisectPageDown  <SID>BisectPageDown
-  noremap <unique> <script> <Plug>BisectPageUp    <SID>BisectPageUp
   noremap <unique> <script> <Plug>BisectPageLeft  <SID>BisectPageLeft
   noremap <unique> <script> <Plug>BisectPageRight <SID>BisectPageRight
-  noremap <silent> <SID>BisectPageDown  <ESC>:call <SID>PageDown()<CR>
-  noremap <silent> <SID>BisectPageUp    <ESC>:call <SID>PageUp()<CR>
   noremap <silent> <SID>BisectPageLeft  <ESC>:call <SID>PageLeft()<CR>
   noremap <silent> <SID>BisectPageRight <ESC>:call <SID>PageRight()<CR>
 endif
