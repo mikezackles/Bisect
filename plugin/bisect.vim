@@ -134,6 +134,10 @@ function! s:ScreenLeftCol()
   return winsaveview().leftcol
 endfunction
 
+function! s:ScreenRightCol()
+  return s:ScreenLeftCol() + s:VisibleWidth()
+endfunction
+
 " This function determines the initial parameters of a bisection.  There is a
 " special exception made for the case that BisectRight is called to start a
 " bisection.  In this case, we make the guess that the user is trying to get
@@ -146,7 +150,8 @@ function! s:StartBisect()
   let s:top_mark = s:ScreenTopLine()
   let s:bottom_mark = s:ScreenBottomLine()
   let s:left_mark = s:ScreenLeftCol()
-  let s:right_mark = s:MaxLineLength()
+  let s:right_mark = s:ScreenRightCol()
+  "let s:right_mark = s:MaxLineLength()
 
   let s:final_position = [-1,-1,-1,-1]
   let s:running = 1
@@ -204,7 +209,8 @@ function s:NarrowBoundaries(direction)
       let s:current_col = s:left_mark + float2nr(floor((s:right_mark - s:left_mark)/2.0))
     endif
     if s:current_col == s:left_mark && !exists("g:bisect_force_strict_bisection")
-      let s:right_mark = s:MaxLineLength()
+      let s:right_mark = s:ScreenRightCol()
+      "let s:right_mark = s:MaxLineLength()
       if l:varying_line_endings
         let l:tmp_right_mark = virtcol('$')
       else
@@ -313,6 +319,11 @@ function! s:PageUpStr()
   endif
 endfunction
 
+function! s:VisibleWidth()
+  "return winwidth(0)+virtcol('.')-wincol()+1
+  return winwidth(0) - (wincol() - (virtcol('.') - winsaveview().leftcol)) + 1
+endfunction
+
 function! s:PageLeft()
   let l:aview = winsaveview()
   if l:aview.leftcol != 0
@@ -321,7 +332,7 @@ function! s:PageLeft()
 endfunction
 
 function! s:PageRight()
-  let l:width = winwidth(0)+virtcol('.')-wincol()+1
+  let l:width = s:VisibleWidth()
   let l:aview = winsaveview()
   let l:target_col = l:aview.leftcol + l:width
   exe "normal! ".(l:target_col)."|"
