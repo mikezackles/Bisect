@@ -262,6 +262,7 @@ function! s:Bisect(direction, invoking_mode)
     call s:StartBisect()
   endif
 
+  " Narrow the boundaries of the selection rectangle
   if a:direction == "up"
     call s:NarrowBoundariesUp()
   elseif a:direction == "down"
@@ -271,14 +272,22 @@ function! s:Bisect(direction, invoking_mode)
   elseif a:direction == "right"
     call s:NarrowBoundariesRight()
   endif
+
   " debugging
   "echo "[".s:top_mark.",".s:current_row.",".s:bottom_mark."] [".s:left_mark.",".s:current_col.",".virtcol('$').",".s:right_mark."]" | redraw
+
+  " We save the window location in case moving the cursor causes it to change
   let l:state = s:SaveWindowState()
+
+  " Move the cursor if in normal mode, or update the visual selection if in a
+  " visual mode
   if a:invoking_mode == 'n'
     call s:Do('', s:MoveScreenCursorStr(s:current_row, s:GetTruncatedCol()))
   else
     call s:VisualSelect()
   endif
+
+  " Restore the window location now that the cursor is moved
   call s:RestoreWindowState(l:state)
 endfunction
 
