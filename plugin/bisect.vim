@@ -28,10 +28,10 @@ function! s:ToggleVirtualEdit()
 endfunction
 
 function! s:ToggleVaryingLineEndings()
-  if exists("g:bisect_force_varying_line_endings")
-    unlet g:bisect_force_varying_line_endings
+  if exists("g:bisect_disable_varying_line_endings")
+    unlet g:bisect_disable_varying_line_endings
   else
-    let g:bisect_force_varying_line_endings = "true"
+    let g:bisect_disable_varying_line_endings = "true"
   endif
 endfunction
 
@@ -188,7 +188,7 @@ function s:NarrowBoundaries(direction)
     endif
   elseif a:direction == "left"
     let s:right_mark = s:current_col
-    if virtcol('.') < virtcol('$') && (!s:IsVirtualEdit() || exists("g:bisect_force_varying_line_endings"))
+    if virtcol('.') < virtcol('$') && (!s:IsVirtualEdit() || !exists("g:bisect_disable_varying_line_endings"))
       let s:current_col = s:left_mark + float2nr(ceil((virtcol('.') - s:left_mark)/2.0))
     else
       let s:current_col = s:left_mark + float2nr(ceil((s:right_mark - s:left_mark)/2.0))
@@ -201,7 +201,7 @@ function s:NarrowBoundaries(direction)
     endif
   elseif a:direction == "right"
     let s:left_mark = s:current_col
-    if virtcol('.') < virtcol('$') && s:right_mark > virtcol('$') && s:current_col != (virtcol('$')-1) && (!s:IsVirtualEdit() || exists("g:bisect_force_varying_line_endings"))
+    if virtcol('.') < virtcol('$') && s:right_mark > virtcol('$') && s:current_col != (virtcol('$')-1) && (!s:IsVirtualEdit() || !exists("g:bisect_disable_varying_line_endings"))
       let l:varying_line_endings = 1
       let s:current_col = s:left_mark + float2nr(floor((virtcol('$') - s:left_mark)/2.0))
     else
