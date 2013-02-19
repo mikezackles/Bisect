@@ -147,11 +147,13 @@ function! s:StartBisect()
   let s:current_row = s:GetScreenLine('.')
   let s:current_col = virtcol('.')
 
-  let s:rect = {}
-  let s:rect.top_mark =    s:ScreenTopLine()
-  let s:rect.bottom_mark = s:ScreenBottomLine()
-  let s:rect.left_mark =   s:ScreenLeftCol()
-  let s:rect.right_mark =  s:ScreenRightCol()
+  let s:vertical_bounds = {}
+  let s:vertical_bounds.top_edge = s:ScreenTopLine()
+  let s:vertical_bounds.bottom_edge = s:ScreenBottomLine()
+
+  let s:horizontal_bounds = {}
+  let s:horizontal_bounds.left_edge = s:ScreenLeftCol()
+  let s:horizontal_bounds.right_edge =  s:ScreenRightCol()
 
   let s:final_position = [-1,-1,-1,-1]
   let s:running = 1
@@ -165,65 +167,46 @@ function s:IsVirtualEdit()
   return &virtualedit == "all"
 endfunction
 
-function s:NarrowBoundariesUp(bounding_rect)
-  let a:bounding_rect.bottom_mark = s:current_row
-  let s:current_row = a:bounding_rect.top_mark + float2nr(ceil((a:bounding_rect.bottom_mark - a:bounding_rect.top_mark)/2.0))
-  if s:current_row == a:bounding_rect.bottom_mark && !exists("g:bisect_force_strict_bisection")
-    let a:bounding_rect.top_mark = s:ScreenTopLine()
-    if s:current_row != a:bounding_rect.top_mark+1
-      call s:NarrowBoundariesUp(a:bounding_rect)
-    endif
-  endif
+function s:NarrowBoundariesUp(vert_bounds)
+  let a:vert_bounds.bottom_edge = s:current_row
 endfunction
 
-function s:NarrowBoundariesDown(bounding_rect)
-  let a:bounding_rect.top_mark = s:current_row
-  let s:current_row = a:bounding_rect.top_mark + float2nr(floor((a:bounding_rect.bottom_mark - a:bounding_rect.top_mark)/2.0))
-  if s:current_row == a:bounding_rect.top_mark && !exists("g:bisect_force_strict_bisection")
-    let a:bounding_rect.bottom_mark = s:ScreenBottomLine()
-    if s:current_row != a:bounding_rect.bottom_mark-1
-      call s:NarrowBoundariesDown(a:bounding_rect)
-    endif
-  endif
+function s:MoveCursorUp(vert_bounds)
+  let s:current_row = a:vert_bounds.top_edge + float2nr(ceil((a:vert_bounds.bottom_edge - a:vert_bounds.top_edge)/2.0))
 endfunction
 
-function s:NarrowBoundariesLeft(bounding_rect)
-  let a:bounding_rect.right_mark = s:current_col
+function s:NarrowBoundariesDown(vert_bounds)
+  let a:vert_bounds.top_edge = s:current_row
+endfunction
+
+function s:MoveCursorDown(vert_bounds)
+  let s:current_row = a:vert_bounds.top_edge + float2nr(floor((a:vert_bounds.bottom_edge - a:vert_bounds.top_edge)/2.0))
+endfunction
+
+function s:NarrowBoundariesLeft(horiz_bounds)
+  let a:horiz_bounds.right_edge = s:current_col
+endfunction
+
+function s:MoveCursorLeft(horiz_bounds)
   if virtcol('.') < virtcol('$') && (!s:IsVirtualEdit() || !exists("g:bisect_disable_varying_line_endings"))
-    let s:current_col = a:bounding_rect.left_mark + float2nr(ceil((virtcol('.') - a:bounding_rect.left_mark)/2.0))
+    let s:current_col = a:horiz_bounds.left_edge + float2nr(ceil((virtcol('.') - a:horiz_bounds.left_edge)/2.0))
   else
-    let s:current_col = a:bounding_rect.left_mark + float2nr(ceil((a:bounding_rect.right_mark - a:bounding_rect.left_mark)/2.0))
-  endif
-  if s:current_col == a:bounding_rect.right_mark && !exists("g:bisect_force_strict_bisection")
-    let a:bounding_rect.left_mark = s:ScreenLeftCol()
-    if s:current_col != a:bounding_rect.left_mark+1
-      call s:NarrowBoundariesLeft(a:bounding_rect)
-    endif
+    let s:current_col = a:horiz_bounds.left_edge + float2nr(ceil((a:horiz_bounds.right_edge - a:horiz_bounds.left_edge)/2.0))
   endif
 endfunction
 
-function s:NarrowBoundariesRight(bounding_rect)
-  let a:bounding_rect.left_mark = s:current_col
-  if virtcol('.') < virtcol('$') && a:bounding_rect.right_mark > virtcol('$') && s:current_col != (virtcol('$')-1) && (!s:IsVirtualEdit() || !exists("g:bisect_disable_varying_line_endings"))
-    let l:varying_line_endings = 1
-    let s:current_col = a:bounding_rect.left_mark + float2nr(floor((virtcol('$') - a:bounding_rect.left_mark)/2.0))
+function s:NarrowBoundariesRight(horiz_bounds)
+  let a:horiz_bounds.left_edge = s:current_col
+endfunction
+
+function s:MoveCursorRight(horiz_bounds)
+  if virtcol('.') < virtcol('$') && a:horiz_bounds.right_edge > virtcol('$') && s:current_col != (virtcol('$')-1) && (!s:IsVirtualEdit() || !exists("g:bisect_disable_varying_line_endings"))
+    " varying line endings
+    let s:current_col = a:horiz_bounds.left_edge + float2nr(floor((virtcol('$') - a:horiz_bounds.left_edge)/2.0))
   else
-    let l:varying_line_endings = 0
-    let s:current_col = a:bounding_rect.left_mark + float2nr(floor((a:bounding_rect.right_mark - a:bounding_rect.left_mark)/2.0))
+    " absolute line endings
+    let s:current_col = a:horiz_bounds.left_edge + float2nr(floor((a:horiz_bounds.right_edge - a:horiz_bounds.left_edge)/2.0))
   endif
-  if s:current_col == a:bounding_rect.left_mark && !exists("g:bisect_force_strict_bisection")
-    let a:bounding_rect.right_mark = s:ScreenRightCol()
-    "let a:bounding_rect.right_mark = s:MaxLineLength()
-    if l:varying_line_endings
-      let l:tmp_right_mark = virtcol('$')
-    else
-      let l:tmp_right_mark = a:bounding_rect.right_mark
-    endif
-    if s:current_col != l:tmp_right_mark-1
-      call s:NarrowBoundariesRight(a:bounding_rect)
-    endif
-  endif
-  return a:bounding_rect
 endfunction
 
 function! s:StopBisect()
@@ -265,13 +248,17 @@ function! s:Bisect(direction, invoking_mode)
 
   " Narrow the boundaries of the selection rectangle
   if a:direction == "up"
-    call s:NarrowBoundariesUp(s:rect)
+    call s:NarrowBoundariesUp(s:vertical_bounds)
+    call s:MoveCursorUp(s:vertical_bounds)
   elseif a:direction == "down"
-    call s:NarrowBoundariesDown(s:rect)
+    call s:NarrowBoundariesDown(s:vertical_bounds)
+    call s:MoveCursorDown(s:vertical_bounds)
   elseif a:direction == "left"
-    call s:NarrowBoundariesLeft(s:rect)
+    call s:NarrowBoundariesLeft(s:horizontal_bounds)
+    call s:MoveCursorLeft(s:horizontal_bounds)
   elseif a:direction == "right"
-    call s:NarrowBoundariesRight(s:rect)
+    call s:NarrowBoundariesRight(s:horizontal_bounds)
+    call s:MoveCursorRight(s:horizontal_bounds)
   endif
 
   " debugging
