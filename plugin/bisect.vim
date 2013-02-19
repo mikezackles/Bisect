@@ -147,11 +147,11 @@ function! s:StartBisect()
   let s:current_row = s:GetScreenLine('.')
   let s:current_col = virtcol('.')
 
-  let s:top_mark = s:ScreenTopLine()
-  let s:bottom_mark = s:ScreenBottomLine()
-  let s:left_mark = s:ScreenLeftCol()
-  let s:right_mark = s:ScreenRightCol()
-  "let s:right_mark = s:MaxLineLength()
+  let s:rect = {}
+  let s:rect.top_mark =    s:ScreenTopLine()
+  let s:rect.bottom_mark = s:ScreenBottomLine()
+  let s:rect.left_mark =   s:ScreenLeftCol()
+  let s:rect.right_mark =  s:ScreenRightCol()
 
   let s:final_position = [-1,-1,-1,-1]
   let s:running = 1
@@ -166,58 +166,58 @@ function s:IsVirtualEdit()
 endfunction
 
 function s:NarrowBoundariesUp()
-  let s:bottom_mark = s:current_row
-  let s:current_row = s:top_mark + float2nr(ceil((s:bottom_mark - s:top_mark)/2.0))
-  if s:current_row == s:bottom_mark && !exists("g:bisect_force_strict_bisection")
-    let s:top_mark = s:ScreenTopLine()
-    if s:current_row != s:top_mark+1
+  let s:rect.bottom_mark = s:current_row
+  let s:current_row = s:rect.top_mark + float2nr(ceil((s:rect.bottom_mark - s:rect.top_mark)/2.0))
+  if s:current_row == s:rect.bottom_mark && !exists("g:bisect_force_strict_bisection")
+    let s:rect.top_mark = s:ScreenTopLine()
+    if s:current_row != s:rect.top_mark+1
       call s:NarrowBoundariesUp()
     endif
   endif
 endfunction
 
 function s:NarrowBoundariesDown()
-  let s:top_mark = s:current_row
-  let s:current_row = s:top_mark + float2nr(floor((s:bottom_mark - s:top_mark)/2.0))
-  if s:current_row == s:top_mark && !exists("g:bisect_force_strict_bisection")
-    let s:bottom_mark = s:ScreenBottomLine()
-    if s:current_row != s:bottom_mark-1
+  let s:rect.top_mark = s:current_row
+  let s:current_row = s:rect.top_mark + float2nr(floor((s:rect.bottom_mark - s:rect.top_mark)/2.0))
+  if s:current_row == s:rect.top_mark && !exists("g:bisect_force_strict_bisection")
+    let s:rect.bottom_mark = s:ScreenBottomLine()
+    if s:current_row != s:rect.bottom_mark-1
       call s:NarrowBoundariesDown()
     endif
   endif
 endfunction
 
 function s:NarrowBoundariesLeft()
-  let s:right_mark = s:current_col
+  let s:rect.right_mark = s:current_col
   if virtcol('.') < virtcol('$') && (!s:IsVirtualEdit() || !exists("g:bisect_disable_varying_line_endings"))
-    let s:current_col = s:left_mark + float2nr(ceil((virtcol('.') - s:left_mark)/2.0))
+    let s:current_col = s:rect.left_mark + float2nr(ceil((virtcol('.') - s:rect.left_mark)/2.0))
   else
-    let s:current_col = s:left_mark + float2nr(ceil((s:right_mark - s:left_mark)/2.0))
+    let s:current_col = s:rect.left_mark + float2nr(ceil((s:rect.right_mark - s:rect.left_mark)/2.0))
   endif
-  if s:current_col == s:right_mark && !exists("g:bisect_force_strict_bisection")
-    let s:left_mark = s:ScreenLeftCol()
-    if s:current_col != s:left_mark+1
+  if s:current_col == s:rect.right_mark && !exists("g:bisect_force_strict_bisection")
+    let s:rect.left_mark = s:ScreenLeftCol()
+    if s:current_col != s:rect.left_mark+1
       call s:NarrowBoundariesLeft()
     endif
   endif
 endfunction
 
 function s:NarrowBoundariesRight()
-  let s:left_mark = s:current_col
-  if virtcol('.') < virtcol('$') && s:right_mark > virtcol('$') && s:current_col != (virtcol('$')-1) && (!s:IsVirtualEdit() || !exists("g:bisect_disable_varying_line_endings"))
+  let s:rect.left_mark = s:current_col
+  if virtcol('.') < virtcol('$') && s:rect.right_mark > virtcol('$') && s:current_col != (virtcol('$')-1) && (!s:IsVirtualEdit() || !exists("g:bisect_disable_varying_line_endings"))
     let l:varying_line_endings = 1
-    let s:current_col = s:left_mark + float2nr(floor((virtcol('$') - s:left_mark)/2.0))
+    let s:current_col = s:rect.left_mark + float2nr(floor((virtcol('$') - s:rect.left_mark)/2.0))
   else
     let l:varying_line_endings = 0
-    let s:current_col = s:left_mark + float2nr(floor((s:right_mark - s:left_mark)/2.0))
+    let s:current_col = s:rect.left_mark + float2nr(floor((s:rect.right_mark - s:rect.left_mark)/2.0))
   endif
-  if s:current_col == s:left_mark && !exists("g:bisect_force_strict_bisection")
-    let s:right_mark = s:ScreenRightCol()
-    "let s:right_mark = s:MaxLineLength()
+  if s:current_col == s:rect.left_mark && !exists("g:bisect_force_strict_bisection")
+    let s:rect.right_mark = s:ScreenRightCol()
+    "let s:rect.right_mark = s:MaxLineLength()
     if l:varying_line_endings
       let l:tmp_right_mark = virtcol('$')
     else
-      let l:tmp_right_mark = s:right_mark
+      let l:tmp_right_mark = s:rect.right_mark
     endif
     if s:current_col != l:tmp_right_mark-1
       call s:NarrowBoundariesRight()
@@ -274,7 +274,7 @@ function! s:Bisect(direction, invoking_mode)
   endif
 
   " debugging
-  "echo "[".s:top_mark.",".s:current_row.",".s:bottom_mark."] [".s:left_mark.",".s:current_col.",".virtcol('$').",".s:right_mark."]" | redraw
+  "echo "[".s:rect.top_mark.",".s:current_row.",".s:rect.bottom_mark."] [".s:rect.left_mark.",".s:current_col.",".virtcol('$').",".s:rect.right_mark."]" | redraw
 
   " We save the window location in case moving the cursor causes it to change
   let l:state = s:SaveWindowState()
