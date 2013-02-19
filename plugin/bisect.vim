@@ -436,31 +436,31 @@ if !exists("g:bisect_disable_default_mappings")
     imap <C-l> <Plug>BisectInsertBisectRight
   endif
 
-  "PageUp
-  if !hasmapto('<Plug>BisectNormalPageUp', 'n')
-    nmap K <Plug>BisectNormalPageUp
-  endif
-  if !hasmapto('<Plug>BisectVisualPageUp', 'v')
-    xmap K <Plug>BisectVisualPageUp
-  endif
+  ""PageUp
+  "if !hasmapto('<Plug>BisectNormalPageUp', 'n')
+  "  nmap K <Plug>BisectNormalPageUp
+  "endif
+  "if !hasmapto('<Plug>BisectVisualPageUp', 'v')
+  "  xmap K <Plug>BisectVisualPageUp
+  "endif
 
-  "PageDown
-  if !hasmapto('<Plug>BisectNormalPageDown', 'n')
-    nmap J <Plug>BisectNormalPageDown
-  endif
-  if !hasmapto('<Plug>BisectVisualPageDown', 'v')
-    xmap J <Plug>BisectVisualPageDown
-  endif
+  ""PageDown
+  "if !hasmapto('<Plug>BisectNormalPageDown', 'n')
+  "  nmap J <Plug>BisectNormalPageDown
+  "endif
+  "if !hasmapto('<Plug>BisectVisualPageDown', 'v')
+  "  xmap J <Plug>BisectVisualPageDown
+  "endif
 
-  "PageLeft
-  if !hasmapto('<Plug>BisectPageLeft', 'n')
-    map H <Plug>BisectPageLeft
-  endif
+  ""PageLeft
+  "if !hasmapto('<Plug>BisectPageLeft', 'n')
+  "  map H <Plug>BisectPageLeft
+  "endif
 
-  "PageRight
-  if !hasmapto('<Plug>BisectPageRight', 'n')
-    map L <Plug>BisectPageRight
-  endif
+  ""PageRight
+  "if !hasmapto('<Plug>BisectPageRight', 'n')
+  "  map L <Plug>BisectPageRight
+  "endif
 
   "StopBisect
   if !hasmapto('<Plug>BisectNormalStopBisect', 'n')
