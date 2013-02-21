@@ -70,16 +70,6 @@ function! s:MoveToColStr( col_number )
   return a:col_number."|"
 endfunction
 
-" Select the appropriate region
-function! s:VisualSelect()
-  call setpos('.', s:visual_start_position)
-  if (s:current_row == 1)
-    call s:Do(visualmode(), line("w0")."G".s:GetTruncatedCol()."|")
-  else
-    call s:Do(visualmode(), line("w0")."G".(s:current_row-1)."gj".s:GetTruncatedCol()."|")
-  endif
-endfunction
-
 " See if the cursor has moved
 " If we aren't in virtualedit mode, the cursor may be shifted because of
 " line endings.
@@ -111,11 +101,7 @@ function! s:GetScreenLine( expr )
 endfunction
 
 function! s:MoveDownNScreenLinesStr( num_lines )
-  if (a:num_lines == 0)
-    return ""
-  else
-    return a:num_lines."gj"
-  endif
+  return (a:num_lines == 0) ? "" : (a:num_lines."gj")
 endfunction
 
 function! s:MoveToScreenLineStr( line_number )
@@ -261,22 +247,34 @@ function! s:Bisect(direction, invoking_mode)
     call s:MoveCursorRight(s:horizontal_bounds)
   endif
 
-  " debugging
-  "echo "[".s:rect.top_mark.",".s:current_row.",".s:rect.bottom_mark."] [".s:rect.left_mark.",".s:current_col.",".virtcol('$').",".s:rect.right_mark."]" | redraw
-
   " We save the window location in case moving the cursor causes it to change
   let l:state = s:SaveWindowState()
 
   " Move the cursor if in normal mode, or update the visual selection if in a
   " visual mode
+  let l:move_cursor_string = s:MoveScreenCursorStr(s:current_row, s:GetTruncatedCol())
+  let l:target_screen_line = s:current_row
+  let l:target_screen_col = s:GetTruncatedCol()
   if a:invoking_mode == 'n'
-    call s:Do('', s:MoveScreenCursorStr(s:current_row, s:GetTruncatedCol()))
+    " Normal mode
+    call s:MoveCursor("", l:target_screen_line, l:target_screen_col)
   else
-    call s:VisualSelect()
+    " Visual mode
+    call s:SelectRegion(s:visual_start_position, l:target_screen_line, l:target_screen_col)
   endif
 
   " Restore the window location now that the cursor is moved
   call s:RestoreWindowState(l:state)
+endfunction
+
+function! s:SelectRegion(start_position, end_screen_line, end_screen_col)
+    call setpos('.', a:start_position)
+    call s:MoveCursor(visualmode(), a:end_screen_line, a:end_screen_col)
+endfunction
+
+function! s:MoveCursor(visual_mode, screen_line, screen_col)
+  let l:move_cursor_string = s:MoveScreenCursorStr(a:screen_line, a:screen_col)
+  call s:Do(a:visual_mode, l:move_cursor_string)
 endfunction
 
 " Wrappers for s:Bisect
