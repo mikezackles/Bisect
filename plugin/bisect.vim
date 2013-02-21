@@ -471,12 +471,12 @@ if !exists("g:bisect_disable_default_mappings")
 
   "StopBisect
   if !hasmapto('<Plug>BisectNormalStopBisect', 'n')
-    nmap <C-i> <Plug>BisectNormalStopBisect
+    nmap <C-@> <Plug>BisectNormalStopBisect
   endif
   if !hasmapto('<Plug>BisectVisualStopBisect', 'v')
-    xmap <C-i> <Plug>BisectVisualStopBisect
+    xmap <C-@> <Plug>BisectVisualStopBisect
   endif
   if !hasmapto('<Plug>BisectInsertStopBisect', 'i')
-    imap <C-i> <Plug>BisectInsertStopBisect
+    imap <C-@> <Plug>BisectInsertStopBisect
   endif
 endif
