@@ -77,21 +77,6 @@ function! s:CursorIsAtExpectedLocation()
   return s:invoking_position == s:final_position
 endfunction
 
-" Limit bisections to the longest line on screen.
-function! s:MaxLineLength()
-  let l:max_width = winwidth(0)+virtcol('.')-wincol()+1
-  let l:max_so_far = 0
-  for linenum in range(line('w0'), line('w$'))
-    let l:line_length = virtcol([linenum,'$'])
-    if l:line_length > l:max_width
-      return l:max_width
-    elseif l:line_length > l:max_so_far
-      let l:max_so_far = l:line_length
-    endif
-  endfor
-  return l:max_so_far
-endfunction
-
 function! s:GetScreenLine( expr )
   let saved = getpos(".")
   call s:Do('', s:MoveToFileLineStr(line(a:expr)))
@@ -252,7 +237,6 @@ function! s:Bisect(direction, invoking_mode)
 
   " Move the cursor if in normal mode, or update the visual selection if in a
   " visual mode
-  let l:move_cursor_string = s:MoveScreenCursorStr(s:current_row, s:GetTruncatedCol())
   let l:target_screen_line = s:current_row
   let l:target_screen_col = s:GetTruncatedCol()
   if a:invoking_mode == 'n'
