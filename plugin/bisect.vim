@@ -70,13 +70,6 @@ function! s:MoveToColStr( col_number )
   return a:col_number."|"
 endfunction
 
-" See if the cursor has moved
-" If we aren't in virtualedit mode, the cursor may be shifted because of
-" line endings.
-function! s:CursorIsAtExpectedLocation()
-  return s:invoking_position == s:final_position
-endfunction
-
 function! s:GetScreenLine( expr )
   let saved = getpos(".")
   call s:Do('', s:MoveToFileLineStr(line(a:expr)))
@@ -131,7 +124,7 @@ function! s:StartBisect()
 endfunction
 
 function! s:BisectIsRunning()
-  return exists("s:running") && s:CursorIsAtExpectedLocation()
+  return exists("s:running")
 endfunction
 
 function s:IsVirtualEdit()
@@ -263,25 +256,12 @@ endfunction
 
 " Wrappers for s:Bisect
 function! s:NormalBisect(direction)
-  let s:invoking_position = getpos('.')
   call s:Bisect(a:direction, 'n')
 endfunction
 
 function! s:VisualBisect(direction)
-  " We know the cursor is at one end of the selection.  This is the *only* way
-  " I've been able to find to get the cursor location in this particular
-  " scenario.  Note that the column will be wrong in visual line mode, so we
-  " just set it to 1 since we don't care about it anyway.  Note that a
-  " horizontal bisection in this case will begin a new global bisection.
-  if s:visual_start_position == getpos("'<")
-    let s:invoking_position = getpos("'>")
-  else
-    let s:invoking_position = getpos("'<")
-  endif
   if visualmode() == "V"
     normal! 0
-    " Column is filled with garbage in this case
-    let s:invoking_position[2] = 1
   endif
   call s:Bisect(a:direction, visualmode())
 endfunction
