@@ -11,46 +11,7 @@ if exists("loaded_bisect")
 endif
 let g:loaded_bisect = 1
 
-function! s:Do(vmode, expr)
-  let str = a:vmode.a:expr
-  if (str != "")
-    exe "normal! ".str
-  endif
-endfunction
-
-function! s:ToggleVirtualEdit()
-  call s:StopBisect()
-  if &virtualedit != "all"
-    set virtualedit=all
-  else
-    set virtualedit=
-  endif
-endfunction
-
-function! s:ToggleVaryingLineEndings()
-  if exists("g:bisect_disable_varying_line_endings")
-    unlet g:bisect_disable_varying_line_endings
-  else
-    let g:bisect_disable_varying_line_endings = "true"
-  endif
-endfunction
-
-" This is called before the mode is set, so we have to pass it in explicitly.
-function! s:SaveVisualStartPosition(vmode)
-  if a:vmode == "V" "Visual line mode
-    normal! 0
-  endif
-  let s:visual_start_position = getpos('.')
-endfunction
-
-function! s:GetTruncatedCol()
-  let l:rowend = virtcol([s:current_row, '$'])
-  if !s:IsVirtualEdit() && s:current_col >= l:rowend && l:rowend != 1
-    return l:rowend - 1
-  else
-    return s:current_col
-  endif
-endfunction
+"""Utility functions"""
 
 function! s:MoveScreenCursorStr( line, col )
   return s:MoveToScreenLineStr(a:line).s:MoveToColStr(a:col)
@@ -68,6 +29,23 @@ endfunction
 " absolute position in vim.
 function! s:MoveToColStr( col_number )
   return a:col_number."|"
+endfunction
+
+function! s:CenterVerticallyOnCursorStr()
+  return "zz"
+endfunction
+
+function! s:PageDownStr()
+  return s:MoveToScreenLineStr(winheight(0)).s:MoveToColStr(virtcol('.')).s:CenterVerticallyOnCursorStr()
+endfunction
+
+function! s:PageUpStr()
+  let l:topline = line("w0")-1
+  if l:topline > 0
+    return s:MoveFileCursorStr(l:topline, virtcol('.')).s:CenterVerticallyOnCursorStr()
+  else
+    return ""
+  endif
 endfunction
 
 function! s:GetScreenLine( expr )
@@ -92,6 +70,32 @@ endfunction
 
 function! s:ScreenBottomLine()
   return s:GetScreenLine('w$') + 1
+endfunction
+
+
+
+function! s:Do(vmode, expr)
+  let str = a:vmode.a:expr
+  if (str != "")
+    exe "normal! ".str
+  endif
+endfunction
+
+" This is called before the mode is set, so we have to pass it in explicitly.
+function! s:SaveVisualStartPosition(vmode)
+  if a:vmode == "V" "Visual line mode
+    normal! 0
+  endif
+  let s:visual_start_position = getpos('.')
+endfunction
+
+function! s:GetTruncatedCol()
+  let l:rowend = virtcol([s:current_row, '$'])
+  if !s:IsVirtualEdit() && s:current_col >= l:rowend && l:rowend != 1
+    return l:rowend - 1
+  else
+    return s:current_col
+  endif
 endfunction
 
 function! s:ScreenLeftCol()
@@ -271,23 +275,6 @@ function! s:InsertBisect(direction)
   call s:NormalBisect(a:direction)
 endfunction
 
-function! s:CenterVerticallyOnCursorStr()
-  return "zz"
-endfunction
-
-function! s:PageDownStr()
-  return s:MoveToScreenLineStr(winheight(0)).s:MoveToColStr(virtcol('.')).s:CenterVerticallyOnCursorStr()
-endfunction
-
-function! s:PageUpStr()
-  let l:topline = line("w0")-1
-  if l:topline > 0
-    return s:MoveFileCursorStr(l:topline, virtcol('.')).s:CenterVerticallyOnCursorStr()
-  else
-    return ""
-  endif
-endfunction
-
 function! s:VisibleWidth()
   "return winwidth(0)+virtcol('.')-wincol()+1
   return winwidth(0) - (wincol() - (virtcol('.') - winsaveview().leftcol)) + 1
@@ -307,6 +294,25 @@ function! s:PageRight()
   exe "normal! ".(l:target_col)."|"
   if !s:IsVirtualEdit() && virtcol('.') < l:target_col
     call winrestview(l:aview)
+  endif
+endfunction
+
+"""Misc functions"""
+
+function! s:ToggleVirtualEdit()
+  call s:StopBisect()
+  if &virtualedit != "all"
+    set virtualedit=all
+  else
+    set virtualedit=
+  endif
+endfunction
+
+function! s:ToggleVaryingLineEndings()
+  if exists("g:bisect_disable_varying_line_endings")
+    unlet g:bisect_disable_varying_line_endings
+  else
+    let g:bisect_disable_varying_line_endings = "true"
   endif
 endfunction
 
