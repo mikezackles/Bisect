@@ -316,6 +316,9 @@ function! s:ToggleVaryingLineEndings()
   endif
 endfunction
 
+"""Function Mappings"""
+" These expose symbols that can be bound by users
+
 "BisectUp
 nnoremap <silent> <unique> <script> <Plug>BisectNormalBisectUp         :call <SID>NormalBisect("up")<CR>
 xnoremap <silent> <unique> <script> <Plug>BisectVisualBisectUp    <ESC>:call <SID>VisualBisect("up")<CR>
@@ -361,10 +364,21 @@ noremap <silent> <unique> <script> <Plug>BisectToggleVirtualEdit        <ESC>:ca
 "ToggleVaryingLineEndings
 noremap <silent> <unique> <script> <Plug>BisectToggleVaryingLineEndings <ESC>:call <SID>ToggleVaryingLineEndings()<CR>
 
-"Sneaky visual mode handling
+"""Visual Mode Hackery"""
+" A visual selection consists of a starting position and an ending position.
+" One of these positions is always the current location of the cursor, and the
+" other position is the location at which visual mode was invoked.  Our
+" current method for moving the cursor cancels any visual mode selection, so
+" we need to manually store the position at which the visual mode is invoked
+" in order to select the correct region.  Here we rebind the keys that invoke
+" visual modes to make them save the current position before starting the
+" desired visual mode.
+
 nnoremap <silent> v :call <SID>SaveVisualStartPosition('v')<CR>v
 nnoremap <silent> V :call <SID>SaveVisualStartPosition('V')<CR>V
 nnoremap <silent> <C-v> :call <SID>SaveVisualStartPosition('C-v')<CR><C-v>
+
+"""Default Mappings"""
 
 if !exists("g:bisect_disable_default_mappings")
   "BisectUp
