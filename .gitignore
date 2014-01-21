@@ -1,2 +1,4 @@
 *.sw*
 *.vmb
+doc/tags
+.netrwhist
