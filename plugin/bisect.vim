@@ -70,7 +70,7 @@ endfunction
 
 " This is called before the mode is set, so we have to pass it in explicitly.
 function! s:SaveVisualStartPosition(vmode)
-  if a:vmode == "V" "Visual line mode
+  if a:vmode ==# "V" "Visual line mode
     normal! 0
   endif
   let s:visual_start_position = getpos('.')
@@ -251,7 +251,7 @@ function! s:NormalBisect(direction)
 endfunction
 
 function! s:VisualBisect(direction)
-  if visualmode() == "V"
+  if visualmode() ==# "V"
     normal! 0
   endif
   call s:Bisect(a:direction, visualmode())
