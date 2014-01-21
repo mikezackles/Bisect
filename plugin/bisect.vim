@@ -35,19 +35,6 @@ function! s:CenterVerticallyOnCursorStr()
   return "zz"
 endfunction
 
-function! s:PageDownStr()
-  return s:MoveToScreenLineStr(winheight(0)).s:MoveToColStr(virtcol('.')).s:CenterVerticallyOnCursorStr()
-endfunction
-
-function! s:PageUpStr()
-  let l:topline = line("w0")-1
-  if l:topline > 0
-    return s:MoveFileCursorStr(l:topline, virtcol('.')).s:CenterVerticallyOnCursorStr()
-  else
-    return ""
-  endif
-endfunction
-
 function! s:GetScreenLine( expr )
   let saved = getpos(".")
   call s:Do('', s:MoveToFileLineStr(line(a:expr)))
@@ -280,23 +267,6 @@ function! s:VisibleWidth()
   return winwidth(0) - (wincol() - (virtcol('.') - winsaveview().leftcol)) + 1
 endfunction
 
-function! s:PageLeft()
-  let l:aview = winsaveview()
-  if l:aview.leftcol != 0
-    exe "normal! ".(l:aview.leftcol)."|"
-  endif
-endfunction
-
-function! s:PageRight()
-  let l:width = s:VisibleWidth()
-  let l:aview = winsaveview()
-  let l:target_col = l:aview.leftcol + l:width
-  exe "normal! ".(l:target_col)."|"
-  if !s:IsVirtualEdit() && virtcol('.') < l:target_col
-    call winrestview(l:aview)
-  endif
-endfunction
-
 """Misc functions"""
 
 function! s:ToggleVirtualEdit()
@@ -338,20 +308,6 @@ inoremap <silent> <unique> <script> <Plug>BisectInsertBisectLeft  <ESC>:call <SI
 nnoremap <silent> <unique> <script> <Plug>BisectNormalBisectRight      :call <SID>NormalBisect("right")<CR>
 xnoremap <silent> <unique> <script> <Plug>BisectVisualBisectRight <ESC>:call <SID>VisualBisect("right")<CR>
 inoremap <silent> <unique> <script> <Plug>BisectInsertBisectRight <ESC>:call <SID>InsertBisect("right")<CR>i
-
-"PageUp
-nnoremap <silent> <unique> <script> <Plug>BisectNormalPageUp      <ESC>:call <SID>Do('', <SID>PageUpStr())<CR>
-xnoremap <silent> <unique> <script> <Plug>BisectVisualPageUp      <ESC>:call <SID>Do(visualmode(), <SID>PageUpStr())<CR>
-
-"PageDown
-nnoremap <silent> <unique> <script> <Plug>BisectNormalPageDown    <ESC>:call <SID>Do('', <SID>PageDownStr())<CR>
-xnoremap <silent> <unique> <script> <Plug>BisectVisualPageDown    <ESC>:call <SID>Do(visualmode(), <SID>PageDownStr())<CR>
-
-"PageLeft
-noremap  <silent> <unique> <script> <Plug>BisectPageLeft          <ESC>:call <SID>PageLeft()<CR>
-
-"PageRight
-noremap  <silent> <unique> <script> <Plug>BisectPageRight         <ESC>:call <SID>PageRight()<CR>
 
 "StopBisect
 nnoremap <silent> <unique> <script> <Plug>BisectNormalStopBisect       :call <SID>StopBisect()<CR>
@@ -424,32 +380,6 @@ if !exists("g:bisect_disable_default_mappings")
   if !hasmapto('<Plug>BisectInsertBisectRight', 'i')
     imap <C-l> <Plug>BisectInsertBisectRight
   endif
-
-  ""PageUp
-  "if !hasmapto('<Plug>BisectNormalPageUp', 'n')
-  "  nmap K <Plug>BisectNormalPageUp
-  "endif
-  "if !hasmapto('<Plug>BisectVisualPageUp', 'v')
-  "  xmap K <Plug>BisectVisualPageUp
-  "endif
-
-  ""PageDown
-  "if !hasmapto('<Plug>BisectNormalPageDown', 'n')
-  "  nmap J <Plug>BisectNormalPageDown
-  "endif
-  "if !hasmapto('<Plug>BisectVisualPageDown', 'v')
-  "  xmap J <Plug>BisectVisualPageDown
-  "endif
-
-  ""PageLeft
-  "if !hasmapto('<Plug>BisectPageLeft', 'n')
-  "  map H <Plug>BisectPageLeft
-  "endif
-
-  ""PageRight
-  "if !hasmapto('<Plug>BisectPageRight', 'n')
-  "  map L <Plug>BisectPageRight
-  "endif
 
   "StopBisect
   if !hasmapto('<Plug>BisectNormalStopBisect', 'n')
