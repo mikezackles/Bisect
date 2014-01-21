@@ -68,17 +68,17 @@ Here is a full list of bisect commands, along with their default mappings:
     <C-k>(normal mode)   <Plug>BisectUp
     <C-h>(normal mode)   <Plug>BisectLeft
     <C-l>(normal mode)   <Plug>BisectRight
-    <C-i>(normal mode)   <Plug>StopBisect
+    <C-@>(normal mode)   <Plug>StopBisect
     <C-j>(visual mode)   <Plug>VisualBisectDown
     <C-k>(visual mode)   <Plug>VisualBisectUp
     <C-h>(visual mode)   <Plug>VisualBisectLeft
     <C-l>(visual mode)   <Plug>VisualBisectRight
-    <C-i>(visual mode)   <Plug>VisualStopBisect
+    <C-@>(visual mode)   <Plug>VisualStopBisect
     <C-j>(insert mode)   <Plug>InsertBisectDown
     <C-k>(insert mode)   <Plug>InsertBisectUp
     <C-h>(insert mode)   <Plug>InsertBisectLeft
     <C-l>(insert mode)   <Plug>InsertBisectRight
-    <C-i>(insert mode)   <Plug>InsertStopBisect
+    <C-@>(insert mode)   <Plug>InsertStopBisect
     J                    <Plug>BisectPageDown
     K                    <Plug>BisectPageUp
     H                    <Plug>BisectPageLeft
